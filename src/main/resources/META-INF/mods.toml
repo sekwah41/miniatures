@@ -1,0 +1,26 @@
+modLoader="javafml" 
+loaderVersion="[35,)" 
+issueTrackerURL="https://github.com/Noobanidus/Miniatures/issues"
+license="https://github.com/Noobanidus/Miniatures/blob/master/LICENSE"
+[[mods]] 
+modId="miniatures"
+version="${file.jarVersion}" 
+displayName="Miniatures"
+displayURL="https://minecraft.curseforge.com/projects/miniatures"
+credits="Miniatures"
+authors="Noobanidus"
+description='''
+A port of Mini-Me entities from Miniatures 1.12.2.
+'''
+[[dependencies.miniatures]]
+    modId="forge"
+    mandatory=true
+    versionRange="[35,)"
+    ordering="NONE"
+    side="BOTH"
+[[dependencies.miniatures]]
+    modId="minecraft"
+    mandatory=true
+    versionRange="[1.16.4,)"
+    ordering="NONE"
+    side="BOTH"
