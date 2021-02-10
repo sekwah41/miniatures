@@ -34,6 +34,7 @@ import noobanidus.mods.miniatures.entity.ai.PickupPlayerGoal;
 import noobanidus.mods.miniatures.network.Networking;
 import noobanidus.mods.miniatures.network.OwnerChanged;
 import noobanidus.mods.miniatures.util.GameProfileSerializer;
+import org.jline.utils.Log;
 
 import javax.annotation.Nullable;
 import java.util.Map;
@@ -119,14 +120,6 @@ public class MiniMeEntity extends CreatureEntity implements IEntityAdditionalSpa
     pickupCooldown = cooldown;
   }
 
-  // TODO: Global entity attributes
-/*  @Override
-  protected void applyEntityAttributes() {
-    super.applyEntityAttributes();
-    getEntityAttribute(SharedMonsterAttributes.MAX_HEALTH).setBaseValue(10.0D);
-    getEntityAttribute(SharedMonsterAttributes.MOVEMENT_SPEED).setBaseValue(0.3D);
-  }*/
-
   @Override
   public void setCustomName(@Nullable ITextComponent name) {
     super.setCustomName(name);
@@ -137,17 +130,18 @@ public class MiniMeEntity extends CreatureEntity implements IEntityAdditionalSpa
           this.owner = SkullTileEntity.updateGameProfile(new GameProfile(null, name.getString()));
           propagateOwnerChange();
         } catch (Exception e) {
-          //Log.warn(e, "Failed to change skin to %s", name);
+          Log.warn(e, "Failed to change skin to %s", name);
         }
       }
     }
   }
 
   private void propagateOwnerChange() {
-    Networking.INSTANCE.HANDLER.send(PacketDistributor.TRACKING_ENTITY.with(() -> this), new OwnerChanged(getEntityId(), owner));
+    Networking.send(PacketDistributor.TRACKING_ENTITY.with(() -> this), new OwnerChanged(getEntityId(), owner));
   }
 
   @OnlyIn(Dist.CLIENT)
+  @Nullable
   public ResourceLocation getSkinResourceLocation() {
     if (owner != null) {
       final SkinManager manager = Minecraft.getInstance().getSkinManager();
@@ -210,6 +204,10 @@ public class MiniMeEntity extends CreatureEntity implements IEntityAdditionalSpa
   @Override
   public void readAdditional(CompoundNBT tag) {
     this.owner = readOwner(tag);
+
+    if (owner != null) {
+      propagateOwnerChange();
+    }
 
     // switched order, to prevent needless profile fetch in setCustomName
     super.readAdditional(tag);

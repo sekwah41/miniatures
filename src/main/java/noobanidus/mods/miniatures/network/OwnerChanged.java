@@ -1,7 +1,6 @@
 package noobanidus.mods.miniatures.network;
 
 import com.mojang.authlib.GameProfile;
-import io.netty.buffer.ByteBuf;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
 import net.minecraft.network.PacketBuffer;
@@ -18,7 +17,7 @@ public class OwnerChanged {
   public GameProfile profile;
   public int entityId;
 
-  public OwnerChanged (PacketBuffer input) {
+  public OwnerChanged(PacketBuffer input) {
     this.entityId = input.readVarInt();
     if (input.readBoolean()) {
       profile = GameProfileSerializer.read(input);
@@ -30,7 +29,7 @@ public class OwnerChanged {
     this.entityId = entityId;
   }
 
-  public void encode (PacketBuffer output) {
+  public void encode(PacketBuffer output) {
     output.writeVarInt(entityId);
 
     if (profile != null) {
@@ -41,12 +40,12 @@ public class OwnerChanged {
     }
   }
 
-  public void handle (Supplier<NetworkEvent.Context> context) {
+  public void handle(Supplier<NetworkEvent.Context> context) {
     context.get().enqueueWork(() -> handle(this, context));
   }
 
   @OnlyIn(Dist.CLIENT)
-  private static void handle (OwnerChanged message, Supplier<NetworkEvent.Context> context) {
+  private static void handle(OwnerChanged message, Supplier<NetworkEvent.Context> context) {
     World world = Minecraft.getInstance().world;
     if (world != null) {
       Entity e = world.getEntityByID(message.entityId);

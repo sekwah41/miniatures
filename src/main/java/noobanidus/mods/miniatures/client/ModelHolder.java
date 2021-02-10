@@ -6,6 +6,6 @@ public class ModelHolder {
   public static MiniMeModel miniMe;
 
   public static void init () {
-    miniMe = new MiniMeModel(0.5f, false);
+    miniMe = new MiniMeModel(0.5f);
   }
 }

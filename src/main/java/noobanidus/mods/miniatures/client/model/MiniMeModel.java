@@ -5,7 +5,7 @@ import noobanidus.mods.miniatures.entity.MiniMeEntity;
 
 public class MiniMeModel extends PlayerModel<MiniMeEntity> {
 
-  public MiniMeModel(float modelSize, boolean smallArmsIn) {
+  public MiniMeModel(float modelSize) {
     super(modelSize, false);
   }
 
