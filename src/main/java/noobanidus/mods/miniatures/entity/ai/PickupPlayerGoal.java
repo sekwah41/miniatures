@@ -71,7 +71,7 @@ public class PickupPlayerGoal extends Goal {
   }
 
   private boolean canRidePlayer(PlayerEntity player) {
-    final GameProfile owner = minime.getOwner();
+    final GameProfile owner = minime.getGameProfile().orElse(null);
     return owner != null && player != null && player.getGameProfile().getId().equals(owner.getId()) && player.isPassenger();
   }
 }

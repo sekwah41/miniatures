@@ -1,11 +1,9 @@
 package noobanidus.mods.miniatures.entity;
 
+import com.google.common.collect.Iterables;
 import com.mojang.authlib.GameProfile;
-import com.mojang.authlib.minecraft.MinecraftProfileTexture;
-import com.mojang.authlib.minecraft.MinecraftProfileTexture.Type;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.resources.DefaultPlayerSkin;
-import net.minecraft.client.resources.SkinManager;
+import com.mojang.authlib.minecraft.MinecraftSessionService;
+import com.mojang.authlib.properties.Property;
 import net.minecraft.entity.CreatureEntity;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.MobEntity;
@@ -15,42 +13,87 @@ import net.minecraft.entity.ai.goal.*;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.nbt.NBTUtil;
-import net.minecraft.network.PacketBuffer;
+import net.minecraft.network.datasync.DataParameter;
+import net.minecraft.network.datasync.DataSerializers;
+import net.minecraft.network.datasync.EntityDataManager;
 import net.minecraft.pathfinding.GroundPathNavigator;
 import net.minecraft.pathfinding.PathNavigator;
 import net.minecraft.pathfinding.PathNodeType;
-import net.minecraft.tileentity.SkullTileEntity;
-import net.minecraft.util.ResourceLocation;
+import net.minecraft.server.management.PlayerProfileCache;
+import net.minecraft.util.StringUtils;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.world.World;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.common.util.Constants;
-import net.minecraftforge.fml.common.registry.IEntityAdditionalSpawnData;
-import net.minecraftforge.fml.network.PacketDistributor;
 import noobanidus.mods.miniatures.config.ConfigManager;
 import noobanidus.mods.miniatures.entity.ai.BreakBlockGoal;
 import noobanidus.mods.miniatures.entity.ai.PickupPlayerGoal;
-import noobanidus.mods.miniatures.network.Networking;
-import noobanidus.mods.miniatures.network.OwnerChanged;
-import noobanidus.mods.miniatures.util.GameProfileSerializer;
-import org.jline.utils.Log;
+import noobanidus.mods.miniatures.init.ModSerializers;
+import noobanidus.mods.miniatures.util.SkinUtil;
 
 import javax.annotation.Nullable;
-import java.util.Map;
-import java.util.UUID;
+import java.util.Locale;
+import java.util.Optional;
 
-public class MiniMeEntity extends CreatureEntity implements IEntityAdditionalSpawnData {
-  @OnlyIn(Dist.CLIENT)
-  private ResourceLocation locationSkin;
-  private GameProfile owner;
+public class MiniMeEntity extends CreatureEntity {
+  private static final DataParameter<Optional<GameProfile>> GAMEPROFILE = EntityDataManager.createKey(MiniMeEntity.class, ModSerializers.OPTIONAL_GAME_PROFILE);
+  public static final DataParameter<Boolean> SLIM = EntityDataManager.createKey(MiniMeEntity.class, DataSerializers.BOOLEAN);
+
+  private static PlayerProfileCache profileCache;
+  private static MinecraftSessionService sessionService;
   private int pickupCooldown = 0;
   private boolean wasRidden = false;
 
+  @Nullable
+  public static GameProfile updateGameProfile(@Nullable GameProfile input) {
+    if (input != null && !StringUtils.isNullOrEmpty(input.getName())) {
+      if (input.isComplete() && input.getProperties().containsKey("textures")) {
+        return input;
+      } else if (profileCache != null && sessionService != null) {
+        GameProfile gameprofile = profileCache.getGameProfileForUsername(input.getName());
+        if (gameprofile == null) {
+          return input;
+        } else {
+          Property property = Iterables.getFirst(gameprofile.getProperties().get("textures"), (Property) null);
+          if (property == null) {
+            gameprofile = sessionService.fillProfileProperties(gameprofile, true);
+          }
+
+          return gameprofile;
+        }
+      } else {
+        return input;
+      }
+    } else {
+      return input;
+    }
+  }
+
+  public static void setProfileCache(PlayerProfileCache profileCache) {
+    MiniMeEntity.profileCache = profileCache;
+  }
+
+  public static void setSessionService(MinecraftSessionService sessionService) {
+    MiniMeEntity.sessionService = sessionService;
+  }
+
   public MiniMeEntity(EntityType<? extends MiniMeEntity> type, World world) {
     super(type, world);
-    // setSize(0.6F, 0.95F); <-- entity type
     enablePersistence();
+  }
+
+  @Override
+  protected void registerData() {
+    super.registerData();
+    this.dataManager.register(GAMEPROFILE, Optional.empty());
+    this.dataManager.register(SLIM, false);
+  }
+
+  public void setSlim(boolean slim) {
+    dataManager.set(SLIM, slim);
+  }
+
+  public boolean isSlim() {
+    return dataManager.get(SLIM);
   }
 
   public static AttributeModifierMap.MutableAttribute attributes() {
@@ -59,32 +102,36 @@ public class MiniMeEntity extends CreatureEntity implements IEntityAdditionalSpa
 
   @Override
   protected void registerGoals() {
-    this.goalSelector.addGoal(1, new SwimGoal(this));
-    this.goalSelector.addGoal(2, new PickupPlayerGoal(this));
-    this.goalSelector.addGoal(3, new BreakBlockGoal(this));
-    // PickupPlayer
-    // BreakBlock
-
-    this.goalSelector.addGoal(3, new LookRandomlyGoal(this));
-    this.goalSelector.addGoal(4, new WaterAvoidingRandomWalkingGoal(this, 1.0D));
-    this.goalSelector.addGoal(5, new LookAtGoal(this, PlayerEntity.class, 8.0F));
-
     if (ConfigManager.getHostile()) {
-      this.goalSelector.addGoal(2, new MeleeAttackGoal(this, 1.0d, true));
+      this.goalSelector.addGoal(1, new MeleeAttackGoal(this, 1.0d, true));
       this.targetSelector.addGoal(1, new NearestAttackableTargetGoal<>(this, PlayerEntity.class, true));
     }
-
-    // Attack goal this.goalSelector.addGoal(2, new ZombieAttackGoal(this, 1.0D, false));
-    // this.targetSelector.addGoal(1, new NearestAttackableTargetGoal<>(this, PlayerEntity.class, true));
+    this.goalSelector.addGoal(2, new SwimGoal(this));
+    this.goalSelector.addGoal(3, new PickupPlayerGoal(this));
+    this.goalSelector.addGoal(4, new BreakBlockGoal(this));
+    this.goalSelector.addGoal(5, new LookRandomlyGoal(this));
+    this.goalSelector.addGoal(6, new WaterAvoidingRandomWalkingGoal(this, 1.0D));
+    this.goalSelector.addGoal(7, new LookAtGoal(this, PlayerEntity.class, 8.0F));
   }
 
   public MiniMeEntity(EntityType<? extends MiniMeEntity> type, World world, GameProfile owner) {
     this(type, world);
-    this.owner = owner != null ? SkullTileEntity.updateGameProfile(owner) : null;
+    if (owner != null) {
+      dataManager.set(GAMEPROFILE, Optional.of(owner));
+    }
   }
 
-  public void setOwner(GameProfile owner) {
-    this.owner = owner;
+  public Optional<GameProfile> getGameProfile() {
+    return dataManager.get(GAMEPROFILE);
+  }
+
+  public void setGameProfile(GameProfile playerProfile) {
+    GameProfile profile = updateGameProfile(playerProfile);
+    if (profile != null) {
+      dataManager.set(GAMEPROFILE, Optional.of(profile));
+
+      this.setSlim(profile.getId() != null && SkinUtil.isSlimSkin(profile.getId()));
+    }
   }
 
   @Override
@@ -124,39 +171,9 @@ public class MiniMeEntity extends CreatureEntity implements IEntityAdditionalSpa
   public void setCustomName(@Nullable ITextComponent name) {
     super.setCustomName(name);
 
-    if (!world.isRemote) {
-      if (name != null && (owner == null || !name.getString().equalsIgnoreCase(owner.getName()))) {
-        try {
-          this.owner = SkullTileEntity.updateGameProfile(new GameProfile(null, name.getString()));
-          propagateOwnerChange();
-        } catch (Exception e) {
-          Log.warn(e, "Failed to change skin to %s", name);
-        }
-      }
+    if (name != null) {
+      this.setGameProfile(new GameProfile(null, name.getUnformattedComponentText().toLowerCase(Locale.ROOT)));
     }
-  }
-
-  private void propagateOwnerChange() {
-    Networking.send(PacketDistributor.TRACKING_ENTITY.with(() -> this), new OwnerChanged(getEntityId(), owner));
-  }
-
-  @OnlyIn(Dist.CLIENT)
-  @Nullable
-  public ResourceLocation getSkinResourceLocation() {
-    if (owner != null) {
-      final SkinManager manager = Minecraft.getInstance().getSkinManager();
-      Map<Type, MinecraftProfileTexture> map = manager.loadSkinFromCache(owner);
-
-      if (map.containsKey(Type.SKIN)) {
-        final MinecraftProfileTexture skin = map.get(Type.SKIN);
-        return manager.loadSkin(skin, Type.SKIN);
-      } else {
-        UUID uuid = PlayerEntity.getUUID(owner);
-        return DefaultPlayerSkin.getDefaultSkin(uuid);
-      }
-    }
-
-    return null;
   }
 
   @Override
@@ -169,64 +186,36 @@ public class MiniMeEntity extends CreatureEntity implements IEntityAdditionalSpa
     return true;
   }
 
-  public GameProfile getOwner() {
-    return owner;
-  }
-
   @Override
-  public void writeSpawnData(PacketBuffer data) {
-    if (owner != null) {
-      data.writeBoolean(true);
-      GameProfileSerializer.write(owner, data);
-    } else data.writeBoolean(false);
-  }
+  public void writeAdditional(CompoundNBT compound) {
+    super.writeAdditional(compound);
 
-  @Override
-  public void readSpawnData(PacketBuffer data) {
-    if (data.readBoolean()) {
-      this.owner = GameProfileSerializer.read(data);
+    compound.putBoolean("gameProfileExists", dataManager.get(GAMEPROFILE).isPresent());
+    if (getGameProfile().isPresent()) {
+      compound.put("gameProfile", NBTUtil.writeGameProfile(new CompoundNBT(), dataManager.get(GAMEPROFILE).get()));
     }
-  }
+    compound.putBoolean("Slim", isSlim());
 
-  @Override
-  public void writeAdditional(CompoundNBT tag) {
-    super.writeAdditional(tag);
-
-    if (owner != null) {
-      CompoundNBT ownerTag = new CompoundNBT();
-      NBTUtil.writeGameProfile(ownerTag, owner);
-      tag.put("Owner", ownerTag);
-    }
-
-    tag.putInt("pickupCooldown", pickupCooldown);
+    compound.putInt("pickupCooldown", pickupCooldown);
   }
 
   @Override
   public void readAdditional(CompoundNBT tag) {
-    this.owner = readOwner(tag);
-
-    if (owner != null) {
-      propagateOwnerChange();
-    }
-
-    // switched order, to prevent needless profile fetch in setCustomName
     super.readAdditional(tag);
-
     this.pickupCooldown = tag.getInt("pickupCooldown");
+    this.setSlim(tag.getBoolean("Slim"));
   }
 
-  private static GameProfile readOwner(CompoundNBT tag) {
-    if (tag.contains("owner", Constants.NBT.TAG_STRING)) {
-      String ownerName = tag.getString("owner");
-      return SkullTileEntity.updateGameProfile(new GameProfile(null, ownerName));
-    } else if (tag.hasUniqueId("OwnerUUID")) {
-      UUID uuid = tag.getUniqueId("OwnedUUID");
-      return new GameProfile(uuid, null);
-    } else if (tag.contains("Owner", Constants.NBT.TAG_COMPOUND)) {
-      return NBTUtil.readGameProfile(tag.getCompound("Owner"));
+  @Override
+  public void read(CompoundNBT compound) {
+    super.read(compound);
+
+    if (compound.contains("owner", Constants.NBT.TAG_STRING)) {
+      setGameProfile(new GameProfile(null, compound.getString("owner")));
+    } else if (compound.hasUniqueId("OwnerUUID")) {
+      setGameProfile(new GameProfile(compound.getUniqueId("OwnerUUID"), null));
+    } else {
+      dataManager.set(GAMEPROFILE, !compound.getBoolean("gameProfileExists") ? Optional.empty() : Optional.ofNullable(NBTUtil.readGameProfile(compound.getCompound("gameProfile"))));
     }
-
-    return null;
   }
-
 }
