@@ -4,9 +4,7 @@ import com.google.common.collect.Iterables;
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.minecraft.MinecraftSessionService;
 import com.mojang.authlib.properties.Property;
-import net.minecraft.entity.CreatureEntity;
-import net.minecraft.entity.EntityType;
-import net.minecraft.entity.MobEntity;
+import net.minecraft.entity.*;
 import net.minecraft.entity.ai.attributes.AttributeModifierMap;
 import net.minecraft.entity.ai.attributes.Attributes;
 import net.minecraft.entity.ai.goal.*;
@@ -22,6 +20,7 @@ import net.minecraft.pathfinding.PathNodeType;
 import net.minecraft.server.management.PlayerProfileCache;
 import net.minecraft.util.StringUtils;
 import net.minecraft.util.text.ITextComponent;
+import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.Constants;
 import noobanidus.mods.miniatures.config.ConfigManager;
@@ -107,8 +106,10 @@ public class MiniMeEntity extends CreatureEntity {
       this.targetSelector.addGoal(1, new NearestAttackableTargetGoal<>(this, PlayerEntity.class, true));
     }
     this.goalSelector.addGoal(2, new SwimGoal(this));
-    this.goalSelector.addGoal(3, new PickupPlayerGoal(this));
-    this.goalSelector.addGoal(4, new BreakBlockGoal(this));
+    this.goalSelector.addGoal(3, new BreakBlockGoal(this));
+    if (!ConfigManager.getHostile()) {
+      this.goalSelector.addGoal(4, new PickupPlayerGoal(this));
+    }
     this.goalSelector.addGoal(5, new LookRandomlyGoal(this));
     this.goalSelector.addGoal(6, new WaterAvoidingRandomWalkingGoal(this, 1.0D));
     this.goalSelector.addGoal(7, new LookAtGoal(this, PlayerEntity.class, 8.0F));
@@ -217,5 +218,14 @@ public class MiniMeEntity extends CreatureEntity {
     } else {
       dataManager.set(GAMEPROFILE, !compound.getBoolean("gameProfileExists") ? Optional.empty() : Optional.ofNullable(NBTUtil.readGameProfile(compound.getCompound("gameProfile"))));
     }
+
+    if (compound.contains("NameTag", Constants.NBT.TAG_STRING)) {
+      dataManager.set(CUSTOM_NAME, Optional.of(new StringTextComponent(compound.getString("NameTag"))));
+    }
+  }
+
+  @Override
+  protected float getStandingEyeHeight(Pose p_213348_1_, EntitySize p_213348_2_) {
+    return 0.85f;
   }
 }

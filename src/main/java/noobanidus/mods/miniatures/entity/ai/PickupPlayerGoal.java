@@ -7,6 +7,7 @@ import net.minecraft.pathfinding.PathNavigator;
 import net.minecraft.world.World;
 import noobanidus.mods.miniatures.entity.MiniMeEntity;
 
+import java.util.EnumSet;
 import java.util.List;
 
 public class PickupPlayerGoal extends Goal {
@@ -18,8 +19,7 @@ public class PickupPlayerGoal extends Goal {
   public PickupPlayerGoal(MiniMeEntity entity) {
     this.minime = entity;
     this.pathFinder = entity.getNavigator();
-    // TODO: Mutex bits
-    //setMutexBits(3);
+    this.setMutexFlags(EnumSet.of(Goal.Flag.MOVE, Goal.Flag.LOOK));
   }
 
   @Override

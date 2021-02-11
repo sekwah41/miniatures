@@ -24,7 +24,6 @@ public class MiniMeRenderer extends BipedRenderer<MiniMeEntity, MiniMeModel> {
 
   public MiniMeRenderer(EntityRendererManager renderManager, MiniMeModel model, float shadow) {
     super(renderManager, model, shadow);
-    this.addLayer(new BipedArmorLayer<>(this, ModelHolder.miniMe, ModelHolder.miniMe));
     this.addLayer(new HeldItemLayer<>(this));
     this.addLayer(new ArrowLayer<>(this));
     this.addLayer(new HeadLayer<>(this));

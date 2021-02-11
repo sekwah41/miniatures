@@ -13,6 +13,7 @@ import net.minecraft.world.server.ServerWorld;
 import noobanidus.mods.miniatures.MiniTags;
 import noobanidus.mods.miniatures.entity.MiniMeEntity;
 
+import java.util.EnumSet;
 import java.util.Random;
 
 public class BreakBlockGoal extends Goal {
@@ -27,6 +28,7 @@ public class BreakBlockGoal extends Goal {
     this.entity = minime;
     this.pathFinder = minime.getNavigator();
     // TODO: Calculate mutexBits
+    this.setMutexFlags(EnumSet.of(Goal.Flag.MOVE, Goal.Flag.JUMP));
     //setMutexBits(3);
     rand = new Random(minime.getEntityId());
     tickOffset = rand.nextInt(10);
