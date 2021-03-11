@@ -5,8 +5,10 @@ import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.minecraft.MinecraftSessionService;
 import com.mojang.authlib.properties.Property;
 import net.minecraft.entity.*;
+import net.minecraft.entity.ai.attributes.AttributeModifier;
 import net.minecraft.entity.ai.attributes.AttributeModifierMap;
 import net.minecraft.entity.ai.attributes.Attributes;
+import net.minecraft.entity.ai.attributes.ModifiableAttributeInstance;
 import net.minecraft.entity.ai.goal.*;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.nbt.CompoundNBT;
@@ -18,14 +20,17 @@ import net.minecraft.pathfinding.GroundPathNavigator;
 import net.minecraft.pathfinding.PathNavigator;
 import net.minecraft.pathfinding.PathNodeType;
 import net.minecraft.server.management.PlayerProfileCache;
+import net.minecraft.util.DamageSource;
 import net.minecraft.util.StringUtils;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.Constants;
+import noobanidus.libs.noobutil.material.MaterialType;
 import noobanidus.mods.miniatures.config.ConfigManager;
 import noobanidus.mods.miniatures.entity.ai.BreakBlockGoal;
 import noobanidus.mods.miniatures.entity.ai.PickupPlayerGoal;
+import noobanidus.mods.miniatures.init.ModModifiers;
 import noobanidus.mods.miniatures.init.ModSerializers;
 import noobanidus.mods.miniatures.util.SkinUtil;
 
@@ -41,6 +46,9 @@ public class MiniMeEntity extends CreatureEntity {
   private static MinecraftSessionService sessionService;
   private int pickupCooldown = 0;
   private boolean wasRidden = false;
+
+  private boolean healthBoosted = false;
+  private boolean attackBoosted = false;
 
   @Nullable
   public static GameProfile updateGameProfile(@Nullable GameProfile input) {
@@ -122,6 +130,14 @@ public class MiniMeEntity extends CreatureEntity {
     }
   }
 
+  @Override
+  public boolean attackEntityFrom(DamageSource source, float amount) {
+    System.out.println("My max health is " + this.getMaxHealth());
+    System.out.println("My current health is " + this.getHealth());
+
+    return super.attackEntityFrom(source, amount);
+  }
+
   public Optional<GameProfile> getGameProfile() {
     return dataManager.get(GAMEPROFILE);
   }
@@ -198,6 +214,25 @@ public class MiniMeEntity extends CreatureEntity {
     compound.putBoolean("Slim", isSlim());
 
     compound.putInt("pickupCooldown", pickupCooldown);
+    if (healthBoosted) {
+      ModifiableAttributeInstance health = this.getAttribute(Attributes.MAX_HEALTH);
+      if (health != null) {
+        AttributeModifier mod = health.getModifier(ModModifiers.HEALTH_INCREASE);
+        if (mod != null) {
+          compound.putDouble("HealthAddition", mod.getAmount());
+          compound.putBoolean("HealthWasBoosted", true);
+        }
+      }
+    }
+    if (attackBoosted) {
+      ModifiableAttributeInstance attack = this.getAttribute(Attributes.ATTACK_DAMAGE);
+      if (attack != null) {
+        AttributeModifier mod = attack.getModifier(ModModifiers.ATTACK_DAMAGE_INCREASE);
+        if (mod != null) {
+          compound.putDouble("AttackAddition", mod.getAmount());
+        }
+      }
+    }
   }
 
   @Override
@@ -221,6 +256,49 @@ public class MiniMeEntity extends CreatureEntity {
 
     if (compound.contains("NameTag", Constants.NBT.TAG_STRING)) {
       dataManager.set(CUSTOM_NAME, Optional.of(new StringTextComponent(compound.getString("NameTag"))));
+    }
+    if (compound.contains("AttackAddition")) {
+      ModifiableAttributeInstance attack = this.getAttribute(Attributes.ATTACK_DAMAGE);
+      if (attack != null) {
+        double value = 0.0;
+        if (compound.contains("AttackAddition", Constants.NBT.TAG_FLOAT)) {
+          value = (double) compound.getFloat("AttackAddition");
+        } else if (compound.contains("AttackAddition", Constants.NBT.TAG_INT)) {
+          value = (double) compound.getInt("AttackAddition");
+        } else if (compound.contains("AttackAddition", Constants.NBT.TAG_DOUBLE)) {
+          value = compound.getDouble("AttackAddition");
+        }
+        if (value != 0.0) {
+          if (attack.getModifier(ModModifiers.ATTACK_DAMAGE_INCREASE) != null) {
+            attack.removeModifier(ModModifiers.ATTACK_DAMAGE_INCREASE);
+          }
+          attack.applyPersistentModifier(new AttributeModifier(ModModifiers.ATTACK_DAMAGE_INCREASE, "Sublimiter Torture Mechanism", value, AttributeModifier.Operation.ADDITION));
+          attackBoosted = true;
+        }
+      }
+    }
+    if (compound.contains("HealthAddition")) {
+      ModifiableAttributeInstance health = this.getAttribute(Attributes.MAX_HEALTH);
+      if (health != null) {
+        double value = 0.0;
+        if (compound.contains("HealthAddition", Constants.NBT.TAG_FLOAT)) {
+          value = (double) compound.getFloat("HealthAddition");
+        } else if (compound.contains("HealthAddition", Constants.NBT.TAG_INT)) {
+          value = (double) compound.getInt("HealthAddition");
+        } else if (compound.contains("HealthAddition", Constants.NBT.TAG_DOUBLE)) {
+          value = compound.getDouble("HealthAddition");
+        }
+        if (value != 0.0) {
+          if (health.getModifier(ModModifiers.HEALTH_INCREASE) != null) {
+            health.removeModifier(ModModifiers.HEALTH_INCREASE);
+          }
+          health.applyPersistentModifier(new AttributeModifier(ModModifiers.HEALTH_INCREASE, "Sublimiter Torture Mechanism", value, AttributeModifier.Operation.ADDITION));
+          if (!compound.contains("HealthWasBoosted") || !compound.getBoolean("HealthWasBoosted")) {
+            this.heal((float) value);
+          }
+          healthBoosted = true;
+        }
+      }
     }
   }
 

@@ -29,7 +29,7 @@ public class ConfigManager {
     COMMON_BUILDER.comment("options relating to miniatures").push("miniatures");
     MAX_HEALTH = COMMON_BUILDER.comment("the maximum health of a miniature").defineInRange("max_health", 16, 0, Double.MAX_VALUE);
     MOVEMENT_SPEED = COMMON_BUILDER.comment("the base movement speed of a miniature").defineInRange("movement_speed", 0.3, 0, Double.MAX_VALUE);
-    ATTACK_DAMAGE = COMMON_BUILDER.comment("if hostile, the amount of damage an attack from a miniature does").defineInRange("attack_damage", 3.0, 0, Double.MAX_VALUE);
+    ATTACK_DAMAGE = COMMON_BUILDER.comment("if hostile, the amount of damage an attack from a miniature does [1 = 1 full heart, 0.5 = half a heart]").defineInRange("attack_damage", 2.0, 0, Double.MAX_VALUE);
     ARMOR_VALUE = COMMON_BUILDER.comment("how much armor miniatures should have").defineInRange("armor_value", 0, 0, Double.MAX_VALUE);
     HOSTILE = COMMON_BUILDER.comment("whether or not miniatures are hostile to players").define("hostile", false);
     COMMON_BUILDER.pop();
