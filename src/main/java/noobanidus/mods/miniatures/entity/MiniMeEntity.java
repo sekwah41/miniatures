@@ -130,14 +130,6 @@ public class MiniMeEntity extends CreatureEntity {
     }
   }
 
-  @Override
-  public boolean attackEntityFrom(DamageSource source, float amount) {
-    System.out.println("My max health is " + this.getMaxHealth());
-    System.out.println("My current health is " + this.getHealth());
-
-    return super.attackEntityFrom(source, amount);
-  }
-
   public Optional<GameProfile> getGameProfile() {
     return dataManager.get(GAMEPROFILE);
   }
