@@ -11,13 +11,9 @@ buildscript {
             name = "sonatype"
             url = "https://oss.sonatype.org/content/repositories/snapshots/"
         }
-        maven {
-            url = "https://repo.spongepowered.org/repository/maven-public/"
-        }
     }
     dependencies {
         classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '3.+', changing: true
-        classpath 'org.spongepowered:mixingradle:0.7-SNAPSHOT'
     }
 }
 plugins {
@@ -27,7 +23,6 @@ apply plugin: 'net.minecraftforge.gradle'
 // Only edit below this line, the above code adds and enables the necessary things for Forge to be setup.
 apply plugin: 'eclipse'
 apply plugin: 'maven-publish'
-apply plugin: 'org.spongepowered.mixin'
 
 version = "${minecraft_version}-${mod_version}"
 if (System.getenv('BUILD_NUMBER') != null) {
@@ -52,7 +47,7 @@ minecraft {
 
             // Recommended logging level for the console
             property 'forge.logging.console.level', 'debug'
-             properties 'mixin.env.disableRefMap': 'true'
+            properties 'mixin.env.disableRefMap': 'true'
 
             mods {
                 miniatures {
@@ -115,11 +110,6 @@ repositories {
         name = "JER"
         url = "https://dl.bintray.com/way2muchnoise/dev"
     }
-    maven {url = 'https://repo.spongepowered.org/maven/'}
-
-    maven {url = 'https://dist.creeper.host/Sponge/maven'}
-    jcenter()
-    mavenCentral()
 }
 
 configurations {

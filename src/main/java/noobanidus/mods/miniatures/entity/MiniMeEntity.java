@@ -10,6 +10,7 @@ import net.minecraft.entity.ai.attributes.AttributeModifierMap;
 import net.minecraft.entity.ai.attributes.Attributes;
 import net.minecraft.entity.ai.attributes.ModifiableAttributeInstance;
 import net.minecraft.entity.ai.goal.*;
+import net.minecraft.entity.monster.MonsterEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.nbt.NBTUtil;
@@ -36,7 +37,7 @@ import javax.annotation.Nullable;
 import java.util.Locale;
 import java.util.Optional;
 
-public class MiniMeEntity extends CreatureEntity {
+public class MiniMeEntity extends MonsterEntity {
   private static final DataParameter<Optional<GameProfile>> GAMEPROFILE = EntityDataManager.createKey(MiniMeEntity.class, ModSerializers.OPTIONAL_GAME_PROFILE);
   public static final DataParameter<Boolean> SLIM = EntityDataManager.createKey(MiniMeEntity.class, DataSerializers.BOOLEAN);
   public static final DataParameter<Boolean> AGGRO = EntityDataManager.createKey(MiniMeEntity.class, DataSerializers.BOOLEAN);
@@ -330,5 +331,10 @@ public class MiniMeEntity extends CreatureEntity {
   @Override
   protected float getStandingEyeHeight(Pose p_213348_1_, EntitySize p_213348_2_) {
     return 0.85f;
+  }
+
+  @Override
+  protected void updateArmSwingProgress() {
+    super.updateArmSwingProgress();
   }
 }

@@ -7,8 +7,15 @@ import noobanidus.mods.miniatures.entity.MiniMeEntity;
 
 public class MiniMeModel extends PlayerModel<MiniMeEntity> {
 
+  private final boolean arms;
+
   public MiniMeModel(float modelSize, boolean arms) {
     super(modelSize, arms);
+    this.arms = arms;
+  }
+
+  public boolean isArms() {
+    return arms;
   }
 
   @Override

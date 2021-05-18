@@ -29,6 +29,7 @@ public class MiniMeRenderer extends BipedRenderer<MiniMeEntity, MiniMeModel> {
     this.addLayer(new HeadLayer<>(this));
     this.addLayer(new ElytraLayer<>(this));
     this.addLayer(new BeeStingerLayer<>(this));
+    this.addLayer(new BipedArmorLayer<>(this, new MiniMeModel(5.0f, model.isArms()), new MiniMeModel(5.0f, model.isArms())));
   }
 
   @Override
