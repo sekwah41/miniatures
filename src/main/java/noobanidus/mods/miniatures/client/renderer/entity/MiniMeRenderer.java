@@ -8,6 +8,7 @@ import net.minecraft.client.renderer.IRenderTypeBuffer;
 import net.minecraft.client.renderer.entity.BipedRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererManager;
 import net.minecraft.client.renderer.entity.layers.*;
+import net.minecraft.client.renderer.entity.model.BipedModel;
 import net.minecraft.client.resources.DefaultPlayerSkin;
 import net.minecraft.client.resources.SkinManager;
 import net.minecraft.util.ResourceLocation;
@@ -19,7 +20,7 @@ import noobanidus.mods.miniatures.entity.MiniMeEntity;
 import javax.annotation.Nonnull;
 import java.util.Map;
 
-public class MiniMeRenderer extends BipedRenderer<MiniMeEntity, MiniMeModel> {
+public class MiniMeRenderer extends BipedRenderer<MiniMeEntity, MiniMeModel<MiniMeEntity>> {
   private static final ResourceLocation TEXTURE_STEVE = new ResourceLocation("textures/entity/steve.png");
 
   public MiniMeRenderer(EntityRendererManager renderManager, MiniMeModel model, float shadow) {
@@ -29,7 +30,8 @@ public class MiniMeRenderer extends BipedRenderer<MiniMeEntity, MiniMeModel> {
     this.addLayer(new HeadLayer<>(this));
     this.addLayer(new ElytraLayer<>(this));
     this.addLayer(new BeeStingerLayer<>(this));
-    this.addLayer(new BipedArmorLayer<>(this, new MiniMeModel(5.0f, model.isArms()), new MiniMeModel(5.0f, model.isArms())));
+    this.addLayer(new BipedArmorLayer<>(this, new BipedModel(1.02F), new BipedModel(1.02F)));
+    //this.addLayer(new BipedArmorLayer<>(this, new MiniMeModel(5.0f, model.isArms()), new MiniMeModel(5.0f, model.isArms())));
   }
 
   @Override

@@ -5,7 +5,7 @@ import net.minecraft.client.renderer.entity.model.PlayerModel;
 import net.minecraft.client.renderer.model.ModelRenderer;
 import noobanidus.mods.miniatures.entity.MiniMeEntity;
 
-public class MiniMeModel extends PlayerModel<MiniMeEntity> {
+public class MiniMeModel<E extends MiniMeEntity> extends PlayerModel<E> {
 
   private final boolean arms;
 
@@ -19,7 +19,7 @@ public class MiniMeModel extends PlayerModel<MiniMeEntity> {
   }
 
   @Override
-  public void setRotationAngles(MiniMeEntity entityIn, float limbSwing, float limbSwingAmount, float ageInTicks, float netHeadYaw, float headPitch) {
+  public void setRotationAngles(E entityIn, float limbSwing, float limbSwingAmount, float ageInTicks, float netHeadYaw, float headPitch) {
     super.setRotationAngles(entityIn, limbSwing, limbSwingAmount, ageInTicks, netHeadYaw, headPitch);
     if (entityIn.isBeingRidden()) {
       this.bipedLeftArm.rotateAngleX = -3f;
