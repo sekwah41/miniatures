@@ -20,13 +20,11 @@ import net.minecraft.pathfinding.GroundPathNavigator;
 import net.minecraft.pathfinding.PathNavigator;
 import net.minecraft.pathfinding.PathNodeType;
 import net.minecraft.server.management.PlayerProfileCache;
-import net.minecraft.util.DamageSource;
 import net.minecraft.util.StringUtils;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.Constants;
-import noobanidus.libs.noobutil.material.MaterialType;
 import noobanidus.mods.miniatures.config.ConfigManager;
 import noobanidus.mods.miniatures.entity.ai.BreakBlockGoal;
 import noobanidus.mods.miniatures.entity.ai.PickupPlayerGoal;
@@ -41,6 +39,7 @@ import java.util.Optional;
 public class MiniMeEntity extends CreatureEntity {
   private static final DataParameter<Optional<GameProfile>> GAMEPROFILE = EntityDataManager.createKey(MiniMeEntity.class, ModSerializers.OPTIONAL_GAME_PROFILE);
   public static final DataParameter<Boolean> SLIM = EntityDataManager.createKey(MiniMeEntity.class, DataSerializers.BOOLEAN);
+  public static final DataParameter<Boolean> AGGRO = EntityDataManager.createKey(MiniMeEntity.class, DataSerializers.BOOLEAN);
 
   private static PlayerProfileCache profileCache;
   private static MinecraftSessionService sessionService;
@@ -93,6 +92,7 @@ public class MiniMeEntity extends CreatureEntity {
     super.registerData();
     this.dataManager.register(GAMEPROFILE, Optional.empty());
     this.dataManager.register(SLIM, false);
+    this.dataManager.register(AGGRO, false);
   }
 
   public void setSlim(boolean slim) {
@@ -103,20 +103,48 @@ public class MiniMeEntity extends CreatureEntity {
     return dataManager.get(SLIM);
   }
 
+  public boolean getAggro() {
+    return dataManager.get(AGGRO);
+  }
+
+  public void setAggro(boolean aggro) {
+    dataManager.set(AGGRO, aggro);
+    if (!aggro) {
+      added = false;
+      this.goalSelector.removeGoal(melee);
+      this.targetSelector.removeGoal(attack);
+      this.goalSelector.addGoal(4, pickup);
+    } else if (!added) {
+      this.goalSelector.addGoal(1, melee);
+      this.targetSelector.addGoal(1, attack);
+      this.goalSelector.addGoal(4, pickup);
+    }
+  }
+
   public static AttributeModifierMap.MutableAttribute attributes() {
     return MobEntity.func_233666_p_().createMutableAttribute(Attributes.FOLLOW_RANGE, 35.0D).createMutableAttribute(Attributes.MAX_HEALTH, ConfigManager.getMaxHealth()).createMutableAttribute(Attributes.MOVEMENT_SPEED, ConfigManager.getMovementSpeed()).createMutableAttribute(Attributes.ATTACK_DAMAGE, ConfigManager.getAttackDamage()).createMutableAttribute(Attributes.ARMOR, ConfigManager.getArmorValue());
   }
 
+  private MeleeAttackGoal melee;
+  private NearestAttackableTargetGoal<?> attack;
+  private PickupPlayerGoal pickup;
+
+  private boolean added = false;
+
   @Override
   protected void registerGoals() {
+    melee = new MeleeAttackGoal(this, 1.0d, true);
+    attack = new NearestAttackableTargetGoal<>(this, PlayerEntity.class, true);
     if (ConfigManager.getHostile()) {
-      this.goalSelector.addGoal(1, new MeleeAttackGoal(this, 1.0d, true));
-      this.targetSelector.addGoal(1, new NearestAttackableTargetGoal<>(this, PlayerEntity.class, true));
+      added = true;
+      this.goalSelector.addGoal(1, melee);
+      this.targetSelector.addGoal(1, attack);
     }
     this.goalSelector.addGoal(2, new SwimGoal(this));
     this.goalSelector.addGoal(3, new BreakBlockGoal(this));
+    pickup = new PickupPlayerGoal(this);
     if (!ConfigManager.getHostile()) {
-      this.goalSelector.addGoal(4, new PickupPlayerGoal(this));
+      this.goalSelector.addGoal(4, pickup);
     }
     this.goalSelector.addGoal(5, new LookRandomlyGoal(this));
     this.goalSelector.addGoal(6, new WaterAvoidingRandomWalkingGoal(this, 1.0D));
@@ -225,6 +253,8 @@ public class MiniMeEntity extends CreatureEntity {
         }
       }
     }
+
+    compound.putBoolean("aggro", getAggro());
   }
 
   @Override
@@ -290,6 +320,9 @@ public class MiniMeEntity extends CreatureEntity {
           }
           healthBoosted = true;
         }
+      }
+      if (compound.contains("aggro")) {
+        setAggro(compound.getBoolean("aggro"));
       }
     }
   }
