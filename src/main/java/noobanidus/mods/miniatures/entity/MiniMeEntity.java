@@ -89,6 +89,11 @@ public class MiniMeEntity extends MonsterEntity {
   }
 
   @Override
+  public boolean func_230292_f_(PlayerEntity p_230292_1_) {
+    return false;
+  }
+
+  @Override
   protected void registerData() {
     super.registerData();
     this.dataManager.register(GAMEPROFILE, Optional.empty());
