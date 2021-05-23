@@ -4,7 +4,10 @@ import com.google.common.collect.Iterables;
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.minecraft.MinecraftSessionService;
 import com.mojang.authlib.properties.Property;
-import net.minecraft.entity.*;
+import net.minecraft.entity.EntitySize;
+import net.minecraft.entity.EntityType;
+import net.minecraft.entity.MobEntity;
+import net.minecraft.entity.Pose;
 import net.minecraft.entity.ai.attributes.AttributeModifier;
 import net.minecraft.entity.ai.attributes.AttributeModifierMap;
 import net.minecraft.entity.ai.attributes.Attributes;
@@ -93,6 +96,7 @@ public class MiniMeEntity extends MonsterEntity {
     return false;
   }
 
+
   @Override
   protected void registerData() {
     super.registerData();
@@ -140,7 +144,7 @@ public class MiniMeEntity extends MonsterEntity {
   @Override
   protected void registerGoals() {
     melee = new MeleeAttackGoal(this, 1.0d, true);
-    attack = new NearestAttackableTargetGoal<>(this, PlayerEntity.class, true);
+    attack = new NearestAttackableTargetGoal<>(this, PlayerEntity.class, true, true);
     if (ConfigManager.getHostile()) {
       added = true;
       this.goalSelector.addGoal(1, melee);
@@ -198,8 +202,8 @@ public class MiniMeEntity extends MonsterEntity {
   }
 
   @Override
-  public double getMountedYOffset() {
-    return this.getSize(this.getPose()).height * 0.15;
+  public double getYOffset() {
+    return 0;
   }
 
   public int getPickupCooldown() {
@@ -335,7 +339,7 @@ public class MiniMeEntity extends MonsterEntity {
 
   @Override
   protected float getStandingEyeHeight(Pose p_213348_1_, EntitySize p_213348_2_) {
-    return 0.85f;
+    return 0.93f;
   }
 
   @Override
