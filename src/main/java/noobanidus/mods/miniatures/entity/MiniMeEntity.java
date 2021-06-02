@@ -24,6 +24,7 @@ import net.minecraft.pathfinding.GroundPathNavigator;
 import net.minecraft.pathfinding.PathNavigator;
 import net.minecraft.pathfinding.PathNodeType;
 import net.minecraft.server.management.PlayerProfileCache;
+import net.minecraft.util.DamageSource;
 import net.minecraft.util.StringUtils;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.StringTextComponent;
@@ -63,7 +64,7 @@ public class MiniMeEntity extends MonsterEntity {
         if (gameprofile == null) {
           return input;
         } else {
-          Property property = Iterables.getFirst(gameprofile.getProperties().get("textures"), (Property) null);
+          Property property = Iterables.getFirst(gameprofile.getProperties().get("textures"), null);
           if (property == null) {
             gameprofile = sessionService.fillProfileProperties(gameprofile, true);
           }
@@ -132,7 +133,7 @@ public class MiniMeEntity extends MonsterEntity {
   }
 
   public static AttributeModifierMap.MutableAttribute attributes() {
-    return MobEntity.func_233666_p_().createMutableAttribute(Attributes.FOLLOW_RANGE, 35.0D).createMutableAttribute(Attributes.MAX_HEALTH, ConfigManager.getMaxHealth()).createMutableAttribute(Attributes.MOVEMENT_SPEED, ConfigManager.getMovementSpeed()).createMutableAttribute(Attributes.ATTACK_DAMAGE, ConfigManager.getAttackDamage()).createMutableAttribute(Attributes.ARMOR, ConfigManager.getArmorValue());
+    return MobEntity.func_233666_p_().createMutableAttribute(Attributes.MAX_HEALTH, ConfigManager.getMaxHealth()).createMutableAttribute(Attributes.MOVEMENT_SPEED, ConfigManager.getMovementSpeed()).createMutableAttribute(Attributes.ATTACK_DAMAGE, ConfigManager.getAttackDamage()).createMutableAttribute(Attributes.ARMOR, ConfigManager.getArmorValue());
   }
 
   private MeleeAttackGoal melee;
@@ -187,6 +188,14 @@ public class MiniMeEntity extends MonsterEntity {
     setPathPriority(PathNodeType.WATER, -1.0F);
     navigator.setCanSwim(true);
     return navigator;
+  }
+
+  @Override
+  public boolean attackEntityFrom(DamageSource source, float amount) {
+    if (ConfigManager.getImmune() && !(source.getTrueSource() instanceof PlayerEntity) && source != DamageSource.OUT_OF_WORLD) {
+      return false;
+    }
+    return super.attackEntityFrom(source, amount);
   }
 
   @Override
@@ -340,10 +349,5 @@ public class MiniMeEntity extends MonsterEntity {
   @Override
   protected float getStandingEyeHeight(Pose p_213348_1_, EntitySize p_213348_2_) {
     return 0.93f;
-  }
-
-  @Override
-  protected void updateArmSwingProgress() {
-    super.updateArmSwingProgress();
   }
 }

@@ -17,12 +17,14 @@ public class ConfigManager {
   private static ForgeConfigSpec.DoubleValue ATTACK_DAMAGE;
   private static ForgeConfigSpec.DoubleValue ARMOR_VALUE;
   private static ForgeConfigSpec.BooleanValue HOSTILE;
+  private static ForgeConfigSpec.BooleanValue IMMUNE;
 
   private static double maxHealth = -999;
   private static double movementSpeed = -999;
   private static double attackDamage = -999;
   private static double armorValue = -999;
   private static int hostile = -999;
+  private static int immune = -999;
 
 
   static {
@@ -32,6 +34,7 @@ public class ConfigManager {
     ATTACK_DAMAGE = COMMON_BUILDER.comment("if hostile, the amount of damage an attack from a miniature does [1 = 1 full heart, 0.5 = half a heart]").defineInRange("attack_damage", 2.0, 0, Double.MAX_VALUE);
     ARMOR_VALUE = COMMON_BUILDER.comment("how much armor miniatures should have").defineInRange("armor_value", 0, 0, Double.MAX_VALUE);
     HOSTILE = COMMON_BUILDER.comment("whether or not miniatures are hostile to players").define("hostile", false);
+    IMMUNE = COMMON_BUILDER.comment("whether or not miniatures are immune to damage that does not originate from a player").define("non_player_immune", true);
     COMMON_BUILDER.pop();
     COMMON_CONFIG = COMMON_BUILDER.build();
   }
@@ -48,6 +51,7 @@ public class ConfigManager {
     maxHealth = -999;
     attackDamage = -999;
     armorValue = -999;
+    immune = -999;
   }
 
   public static double getArmorValue() {
@@ -84,5 +88,12 @@ public class ConfigManager {
       hostile = HOSTILE.get() ? 1 : 0;
     }
     return hostile == 1;
+  }
+
+  public static boolean getImmune () {
+    if (immune == -999) {
+      immune = IMMUNE.get() ? 1 : 0;
+    }
+    return immune == 1;
   }
 }
