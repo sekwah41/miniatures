@@ -16,6 +16,7 @@ import net.minecraftforge.fml.client.registry.IRenderFactory;
 import noobanidus.mods.miniatures.client.ModelHolder;
 import noobanidus.mods.miniatures.client.model.MiniMeModel;
 import noobanidus.mods.miniatures.entity.MiniMeEntity;
+import noobanidus.mods.miniatures.util.NoobUtil;
 
 import javax.annotation.Nonnull;
 import java.util.Map;
@@ -66,7 +67,11 @@ public class MiniMeRenderer extends BipedRenderer<MiniMeEntity, MiniMeModel<Mini
   }
 
   protected void preRenderCallback(MiniMeEntity entitylivingbaseIn, MatrixStack matrixStackIn, float partialTickTime) {
-    matrixStackIn.scale(0.9375F, 0.9375F, 0.9375F);
+    if (NoobUtil.isNoob(entitylivingbaseIn)) {
+      matrixStackIn.scale(1.0975F, 1.0975F, 1.0975F);
+    } else {
+      matrixStackIn.scale(0.9375F, 0.9375F, 0.9375F);
+    }
   }
 
   public static class Factory implements IRenderFactory<MiniMeEntity> {
