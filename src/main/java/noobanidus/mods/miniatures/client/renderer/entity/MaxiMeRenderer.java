@@ -66,7 +66,7 @@ public class MaxiMeRenderer extends BipedRenderer<MiniMeEntity, MiniMeModel<Mini
   }
 
   protected void preRenderCallback(MiniMeEntity entitylivingbaseIn, MatrixStack matrixStackIn, float partialTickTime) {
-    matrixStackIn.scale(3.9375F, 3.9375F, 3.9375F);
+    matrixStackIn.scale(3.5375F, 3.5375F, 3.5375F);
   }
 
   public static class Factory implements IRenderFactory<MiniMeEntity> {

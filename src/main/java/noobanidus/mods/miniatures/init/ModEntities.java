@@ -18,7 +18,7 @@ public class ModEntities {
 
   public static RegistryEntry<EntityType<MaxiMeEntity>> MAXIME = REGISTRATE.<MaxiMeEntity>entity("maxime", MaxiMeEntity::new, EntityClassification.CREATURE)
       .loot((p, e) -> p.registerLootTable(e, LootTable.builder()))
-      .properties(o -> o.size(4, 8).trackingRange(16).setShouldReceiveVelocityUpdates(true).setUpdateInterval(4))
+      .properties(o -> o.size(2.3f, 7).trackingRange(16).setShouldReceiveVelocityUpdates(true).setUpdateInterval(4))
       .register();
 
   public static void load() {
