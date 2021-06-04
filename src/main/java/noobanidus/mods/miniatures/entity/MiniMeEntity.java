@@ -45,6 +45,7 @@ public class MiniMeEntity extends MonsterEntity {
   private static final DataParameter<Optional<GameProfile>> GAMEPROFILE = EntityDataManager.createKey(MiniMeEntity.class, ModSerializers.OPTIONAL_GAME_PROFILE);
   public static final DataParameter<Boolean> SLIM = EntityDataManager.createKey(MiniMeEntity.class, DataSerializers.BOOLEAN);
   public static final DataParameter<Boolean> AGGRO = EntityDataManager.createKey(MiniMeEntity.class, DataSerializers.BOOLEAN);
+  public static final DataParameter<Boolean> ADULT = EntityDataManager.createKey(MiniMeEntity.class, DataSerializers.BOOLEAN);
 
   private static PlayerProfileCache profileCache;
   private static MinecraftSessionService sessionService;
@@ -104,6 +105,15 @@ public class MiniMeEntity extends MonsterEntity {
     this.dataManager.register(GAMEPROFILE, Optional.empty());
     this.dataManager.register(SLIM, false);
     this.dataManager.register(AGGRO, false);
+    this.dataManager.register(ADULT, false);
+  }
+
+  public void setAdult (boolean adult) {
+    dataManager.set(ADULT, adult);
+  }
+
+  public boolean isAdult () {
+    return dataManager.get(ADULT);
   }
 
   public void setSlim(boolean slim) {
@@ -239,7 +249,7 @@ public class MiniMeEntity extends MonsterEntity {
 
   @Override
   public boolean isChild() {
-    return true;
+    return !isAdult();
   }
 
   @Override
@@ -251,6 +261,7 @@ public class MiniMeEntity extends MonsterEntity {
       compound.put("gameProfile", NBTUtil.writeGameProfile(new CompoundNBT(), dataManager.get(GAMEPROFILE).get()));
     }
     compound.putBoolean("Slim", isSlim());
+    compound.putBoolean("Adult", isAdult());
 
     compound.putInt("pickupCooldown", pickupCooldown);
     if (healthBoosted) {
@@ -281,6 +292,9 @@ public class MiniMeEntity extends MonsterEntity {
     super.readAdditional(tag);
     this.pickupCooldown = tag.getInt("pickupCooldown");
     this.setSlim(tag.getBoolean("Slim"));
+    if (tag.contains("Adult")) {
+      this.setAdult(tag.getBoolean("Adult"));
+    }
   }
 
   @Override
