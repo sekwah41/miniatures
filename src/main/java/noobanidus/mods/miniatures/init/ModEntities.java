@@ -6,12 +6,18 @@ import net.minecraft.entity.EntityType;
 import net.minecraft.entity.ai.attributes.GlobalEntityTypeAttributes;
 import net.minecraft.loot.LootTable;
 import noobanidus.mods.miniatures.entity.MaxiMeEntity;
+import noobanidus.mods.miniatures.entity.MeEntity;
 import noobanidus.mods.miniatures.entity.MiniMeEntity;
 
 import static noobanidus.mods.miniatures.Miniatures.REGISTRATE;
 
 public class ModEntities {
   public static RegistryEntry<EntityType<MiniMeEntity>> MINIME = REGISTRATE.<MiniMeEntity>entity("minime", MiniMeEntity::new, EntityClassification.CREATURE)
+      .loot((p, e) -> p.registerLootTable(e, LootTable.builder()))
+      .properties(o -> o.size(0.6F, 2.2F).trackingRange(8).setShouldReceiveVelocityUpdates(true).setUpdateInterval(4))
+      .register();
+
+  public static RegistryEntry<EntityType<MeEntity>> ME = REGISTRATE.<MeEntity>entity("me", MeEntity::new, EntityClassification.CREATURE)
       .loot((p, e) -> p.registerLootTable(e, LootTable.builder()))
       .properties(o -> o.size(0.6F, 2.2F).trackingRange(8).setShouldReceiveVelocityUpdates(true).setUpdateInterval(4))
       .register();
@@ -27,5 +33,6 @@ public class ModEntities {
   public static void registerEntities() {
     GlobalEntityTypeAttributes.put(ModEntities.MINIME.get(), MiniMeEntity.attributes().create());
     GlobalEntityTypeAttributes.put(ModEntities.MAXIME.get(), MaxiMeEntity.attributes().create());
+    GlobalEntityTypeAttributes.put(ModEntities.ME.get(), MiniMeEntity.attributes().create());
   }
 }

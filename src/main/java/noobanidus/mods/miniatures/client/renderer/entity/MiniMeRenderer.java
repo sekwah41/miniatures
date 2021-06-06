@@ -66,11 +66,18 @@ public class MiniMeRenderer extends BipedRenderer<MiniMeEntity, MiniMeModel<Mini
     if (entityIn.isSlim() && this.entityModel != ModelHolder.miniMeSlim) {
       this.entityModel = ModelHolder.miniMeSlim;
     }
-    if (entityIn.getNoobVariant() == 3) {
+    int noob = entityIn.getNoobVariant();
+    if (noob == 3) {
       packedLightIn = 15728880;
       this.entityModel = ModelHolder.miniMeGhost;
       if (entityIn.isSlim() && this.entityModel != ModelHolder.miniMeGhostSlim) {
         this.entityModel = ModelHolder.miniMeGhostSlim;
+      }
+    } else if (noob == 4) {
+      packedLightIn = 15728880;
+      this.entityModel = ModelHolder.miniMeGlow;
+      if (entityIn.isSlim() && this.entityModel != ModelHolder.miniMeGlowSlim) {
+        this.entityModel = ModelHolder.miniMeGlowSlim;
       }
     }
     super.render(entityIn, entityYaw, partialTicks, matrixStackIn, bufferIn, packedLightIn);

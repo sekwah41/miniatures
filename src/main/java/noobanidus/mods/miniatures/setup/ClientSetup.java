@@ -15,6 +15,7 @@ public class ClientSetup {
     ModelHolder.init();
     RenderingRegistry.registerEntityRenderingHandler(ModEntities.MINIME.get(), new MiniMeRenderer.Factory());
     RenderingRegistry.registerEntityRenderingHandler(ModEntities.MAXIME.get(), new MaxiMeRenderer.Factory());
+    RenderingRegistry.registerEntityRenderingHandler(ModEntities.ME.get(), new MiniMeRenderer.Factory());
     event.enqueueWork(() -> {
     });
   }

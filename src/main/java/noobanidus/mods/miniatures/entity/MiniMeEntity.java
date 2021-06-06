@@ -47,13 +47,13 @@ public class MiniMeEntity extends MonsterEntity {
   private static final DataParameter<Optional<GameProfile>> GAMEPROFILE = EntityDataManager.createKey(MiniMeEntity.class, ModSerializers.OPTIONAL_GAME_PROFILE);
   public static final DataParameter<Boolean> SLIM = EntityDataManager.createKey(MiniMeEntity.class, DataSerializers.BOOLEAN);
   public static final DataParameter<Boolean> AGGRO = EntityDataManager.createKey(MiniMeEntity.class, DataSerializers.BOOLEAN);
-  public static final DataParameter<Boolean> ADULT = EntityDataManager.createKey(MiniMeEntity.class, DataSerializers.BOOLEAN);
   public static final DataParameter<Byte> NOOB = EntityDataManager.createKey(MiniMeEntity.class, DataSerializers.BYTE);
 
   private static PlayerProfileCache profileCache;
   private static MinecraftSessionService sessionService;
   private int pickupCooldown = 0;
   private boolean wasRidden = false;
+  protected boolean adult = false;
 
   private boolean healthBoosted = false;
   private boolean attackBoosted = false;
@@ -115,12 +115,13 @@ public class MiniMeEntity extends MonsterEntity {
     this.dataManager.register(GAMEPROFILE, Optional.empty());
     this.dataManager.register(SLIM, false);
     this.dataManager.register(AGGRO, false);
-    this.dataManager.register(ADULT, false);
     this.dataManager.register(NOOB, (byte)3); //(byte)rand.nextInt(5));
     // 0: Upside down
     // 1: Floating
     // 2: On Fire
-    // 3: ???
+    // 3: Ghost
+    // 4: Glow
+    // 5:
   }
 
   public int getNoobVariant () {
@@ -132,14 +133,6 @@ public class MiniMeEntity extends MonsterEntity {
 
   public void setNoobVariant (int variant) {
     dataManager.set(NOOB, (byte)variant);
-  }
-
-  public void setAdult (boolean adult) {
-    dataManager.set(ADULT, adult);
-  }
-
-  public boolean isAdult () {
-    return dataManager.get(ADULT);
   }
 
   public void setSlim(boolean slim) {
@@ -279,7 +272,7 @@ public class MiniMeEntity extends MonsterEntity {
 
   @Override
   public boolean isChild() {
-    return !isAdult();
+    return !adult;
   }
 
   @Override
@@ -291,7 +284,6 @@ public class MiniMeEntity extends MonsterEntity {
       compound.put("gameProfile", NBTUtil.writeGameProfile(new CompoundNBT(), dataManager.get(GAMEPROFILE).get()));
     }
     compound.putBoolean("Slim", isSlim());
-    compound.putBoolean("Adult", isAdult());
     compound.putByte("Noob", (byte)getNoobVariant());
 
     compound.putInt("pickupCooldown", pickupCooldown);
@@ -323,9 +315,6 @@ public class MiniMeEntity extends MonsterEntity {
     super.readAdditional(tag);
     this.pickupCooldown = tag.getInt("pickupCooldown");
     this.setSlim(tag.getBoolean("Slim"));
-    if (tag.contains("Adult")) {
-      this.setAdult(tag.getBoolean("Adult"));
-    }
     if (tag.contains("Noob")) {
       this.setNoobVariant(tag.getByte("Noob"));
     }
