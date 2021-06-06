@@ -15,6 +15,8 @@ import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.fml.client.registry.IRenderFactory;
 import noobanidus.mods.miniatures.client.ModelHolder;
 import noobanidus.mods.miniatures.client.model.MiniMeModel;
+import noobanidus.mods.miniatures.client.renderer.layers.ArrowRenderTypeLayer;
+import noobanidus.mods.miniatures.client.renderer.layers.BeeStingerRenderTypeLayer;
 import noobanidus.mods.miniatures.entity.MiniMeEntity;
 
 import javax.annotation.Nonnull;
@@ -26,10 +28,10 @@ public class MaxiMeRenderer extends BipedRenderer<MiniMeEntity, MiniMeModel<Mini
   public MaxiMeRenderer(EntityRendererManager renderManager, MiniMeModel model, float shadow) {
     super(renderManager, model, shadow);
     this.addLayer(new HeldItemLayer<>(this));
-    this.addLayer(new ArrowLayer<>(this));
+    this.addLayer(new ArrowRenderTypeLayer<>(this));
     this.addLayer(new HeadLayer<>(this));
     this.addLayer(new ElytraLayer<>(this));
-    this.addLayer(new BeeStingerLayer<>(this));
+    this.addLayer(new BeeStingerRenderTypeLayer<>(this));
     this.addLayer(new BipedArmorLayer<>(this, new BipedModel(1.02F), new BipedModel(1.02F)));
     //this.addLayer(new BipedArmorLayer<>(this, new MiniMeModel(5.0f, model.isArms()), new MiniMeModel(5.0f, model.isArms())));
   }
@@ -61,6 +63,13 @@ public class MaxiMeRenderer extends BipedRenderer<MiniMeEntity, MiniMeModel<Mini
     this.entityModel = ModelHolder.miniMe;
     if (entityIn.isSlim() && this.entityModel != ModelHolder.miniMeSlim) {
       this.entityModel = ModelHolder.miniMeSlim;
+    }
+    if (entityIn.getNoobVariant() == 3) {
+      packedLightIn = 15728880;
+      this.entityModel = ModelHolder.miniMeGhost;
+      if (entityIn.isSlim() && this.entityModel != ModelHolder.miniMeGhostSlim) {
+        this.entityModel = ModelHolder.miniMeGhostSlim;
+      }
     }
     super.render(entityIn, entityYaw, partialTicks, matrixStackIn, bufferIn, packedLightIn);
   }

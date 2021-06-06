@@ -1,17 +1,29 @@
 package noobanidus.mods.miniatures.client.model;
 
 import com.google.common.collect.ImmutableList;
-import net.minecraft.client.renderer.entity.model.PlayerModel;
+import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.model.ModelRenderer;
+import net.minecraft.util.ResourceLocation;
+import noobanidus.mods.miniatures.client.AdditionalRenderTypes;
 import noobanidus.mods.miniatures.entity.MiniMeEntity;
 
-public class MiniMeModel<E extends MiniMeEntity> extends PlayerModel<E> {
+import java.util.function.Function;
+
+public class MiniMeModel<E extends MiniMeEntity> extends PlayerRenderModel<E> {
 
   private final boolean arms;
 
   public MiniMeModel(float modelSize, boolean arms) {
-    super(modelSize, arms);
-    this.arms = arms;
+    this(AdditionalRenderTypes::getEntityTranslucent, modelSize, arms);
+  }
+
+  public MiniMeModel(Function<ResourceLocation, RenderType> renderTypeIn, float modelSize, boolean smallArmsIn) {
+    this(renderTypeIn, modelSize, 0.0F, 64, 64, smallArmsIn);
+  }
+
+  public MiniMeModel(Function<ResourceLocation, RenderType> renderTypeIn, float modelSize, float yOffsetIn, int textureWidthIn, int textureHeightIn, boolean smallArmsIn) {
+    super(renderTypeIn, modelSize, yOffsetIn, textureWidthIn, textureHeightIn, smallArmsIn);
+    this.arms = smallArmsIn;
   }
 
   public boolean isArms() {
@@ -46,4 +58,6 @@ public class MiniMeModel<E extends MiniMeEntity> extends PlayerModel<E> {
   protected Iterable<ModelRenderer> getHeadParts() {
     return ImmutableList.of(this.bipedHead, this.bipedHeadwear);
   }
+
+
 }

@@ -116,10 +116,11 @@ public class MiniMeEntity extends MonsterEntity {
     this.dataManager.register(SLIM, false);
     this.dataManager.register(AGGRO, false);
     this.dataManager.register(ADULT, false);
-    this.dataManager.register(NOOB, (byte)2); //(byte)rand.nextInt(5));
+    this.dataManager.register(NOOB, (byte)3); //(byte)rand.nextInt(5));
     // 0: Upside down
     // 1: Floating
     // 2: On Fire
+    // 3: ???
   }
 
   public int getNoobVariant () {
