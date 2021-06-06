@@ -21,6 +21,13 @@ public class MiniMeModel<E extends MiniMeEntity> extends PlayerModel<E> {
   @Override
   public void setRotationAngles(E entityIn, float limbSwing, float limbSwingAmount, float ageInTicks, float netHeadYaw, float headPitch) {
     super.setRotationAngles(entityIn, limbSwing, limbSwingAmount, ageInTicks, netHeadYaw, headPitch);
+    int noob = entityIn.getNoobVariant();
+    if (noob == 1) {
+      this.bipedLeftLeg.rotateAngleX = 0.0f;
+      this.bipedLeftLeg.rotateAngleZ = 0.0f;
+      this.bipedRightLeg.rotateAngleX = 0.0f;
+      this.bipedRightLeg.rotateAngleZ = 0.0f;
+    }
     if (entityIn.isBeingRidden()) {
       this.bipedLeftArm.rotateAngleX = -3f;
       this.bipedRightArm.rotateAngleX = -3f;

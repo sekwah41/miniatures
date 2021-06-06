@@ -13,7 +13,7 @@ import static noobanidus.mods.miniatures.Miniatures.REGISTRATE;
 public class ModEntities {
   public static RegistryEntry<EntityType<MiniMeEntity>> MINIME = REGISTRATE.<MiniMeEntity>entity("minime", MiniMeEntity::new, EntityClassification.CREATURE)
       .loot((p, e) -> p.registerLootTable(e, LootTable.builder()))
-      .properties(o -> o.size(0.6F, 1.95F).trackingRange(8).setShouldReceiveVelocityUpdates(true).setUpdateInterval(4))
+      .properties(o -> o.size(0.6F, 2.2F).trackingRange(8).setShouldReceiveVelocityUpdates(true).setUpdateInterval(4))
       .register();
 
   public static RegistryEntry<EntityType<MaxiMeEntity>> MAXIME = REGISTRATE.<MaxiMeEntity>entity("maxime", MaxiMeEntity::new, EntityClassification.CREATURE)

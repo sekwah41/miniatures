@@ -20,6 +20,7 @@ import net.minecraft.nbt.NBTUtil;
 import net.minecraft.network.datasync.DataParameter;
 import net.minecraft.network.datasync.DataSerializers;
 import net.minecraft.network.datasync.EntityDataManager;
+import net.minecraft.particles.ParticleTypes;
 import net.minecraft.pathfinding.GroundPathNavigator;
 import net.minecraft.pathfinding.PathNavigator;
 import net.minecraft.pathfinding.PathNodeType;
@@ -35,6 +36,7 @@ import noobanidus.mods.miniatures.entity.ai.BreakBlockGoal;
 import noobanidus.mods.miniatures.entity.ai.PickupPlayerGoal;
 import noobanidus.mods.miniatures.init.ModModifiers;
 import noobanidus.mods.miniatures.init.ModSerializers;
+import noobanidus.mods.miniatures.util.NoobUtil;
 import noobanidus.mods.miniatures.util.SkinUtil;
 
 import javax.annotation.Nullable;
@@ -46,6 +48,7 @@ public class MiniMeEntity extends MonsterEntity {
   public static final DataParameter<Boolean> SLIM = EntityDataManager.createKey(MiniMeEntity.class, DataSerializers.BOOLEAN);
   public static final DataParameter<Boolean> AGGRO = EntityDataManager.createKey(MiniMeEntity.class, DataSerializers.BOOLEAN);
   public static final DataParameter<Boolean> ADULT = EntityDataManager.createKey(MiniMeEntity.class, DataSerializers.BOOLEAN);
+  public static final DataParameter<Byte> NOOB = EntityDataManager.createKey(MiniMeEntity.class, DataSerializers.BYTE);
 
   private static PlayerProfileCache profileCache;
   private static MinecraftSessionService sessionService;
@@ -98,6 +101,13 @@ public class MiniMeEntity extends MonsterEntity {
     return false;
   }
 
+  @Override
+  public boolean canRenderOnFire() {
+    if (getNoobVariant() == 2) {
+      return true;
+    }
+    return super.canRenderOnFire();
+  }
 
   @Override
   protected void registerData() {
@@ -106,6 +116,21 @@ public class MiniMeEntity extends MonsterEntity {
     this.dataManager.register(SLIM, false);
     this.dataManager.register(AGGRO, false);
     this.dataManager.register(ADULT, false);
+    this.dataManager.register(NOOB, (byte)2); //(byte)rand.nextInt(5));
+    // 0: Upside down
+    // 1: Floating
+    // 2: On Fire
+  }
+
+  public int getNoobVariant () {
+    if (!NoobUtil.isNoob(this)) {
+      return -1;
+    }
+    return (int)(byte)dataManager.get(NOOB);
+  }
+
+  public void setNoobVariant (int variant) {
+    dataManager.set(NOOB, (byte)variant);
   }
 
   public void setAdult (boolean adult) {
@@ -218,6 +243,10 @@ public class MiniMeEntity extends MonsterEntity {
     } else if (isBeingRidden()) {
       wasRidden = true;
     }
+    int noob = getNoobVariant();
+    if (ticksExisted % 4 == 0 && noob == 1 && world.isRemote) {
+      world.addParticle(ParticleTypes.CAMPFIRE_COSY_SMOKE, getPosX(), getPosY() + 0.3, getPosZ(), 0, 0, 0);
+    }
   }
 
   @Override
@@ -262,6 +291,7 @@ public class MiniMeEntity extends MonsterEntity {
     }
     compound.putBoolean("Slim", isSlim());
     compound.putBoolean("Adult", isAdult());
+    compound.putByte("Noob", (byte)getNoobVariant());
 
     compound.putInt("pickupCooldown", pickupCooldown);
     if (healthBoosted) {
@@ -294,6 +324,9 @@ public class MiniMeEntity extends MonsterEntity {
     this.setSlim(tag.getBoolean("Slim"));
     if (tag.contains("Adult")) {
       this.setAdult(tag.getBoolean("Adult"));
+    }
+    if (tag.contains("Noob")) {
+      this.setNoobVariant(tag.getByte("Noob"));
     }
   }
 
