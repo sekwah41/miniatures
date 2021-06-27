@@ -31,8 +31,9 @@ import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.Constants;
+import noobanidus.mods.miniatures.MiniTags;
 import noobanidus.mods.miniatures.config.ConfigManager;
-import noobanidus.mods.miniatures.entity.ai.BreakBlockGoal;
+import noobanidus.mods.miniatures.entity.ai.MiniBreakBlockGoal;
 import noobanidus.mods.miniatures.entity.ai.PickupPlayerGoal;
 import noobanidus.mods.miniatures.init.ModModifiers;
 import noobanidus.mods.miniatures.init.ModSerializers;
@@ -181,7 +182,7 @@ public class MiniMeEntity extends MonsterEntity {
       this.targetSelector.addGoal(1, attack);
     }
     this.goalSelector.addGoal(2, new SwimGoal(this));
-    this.goalSelector.addGoal(3, new BreakBlockGoal(this));
+    this.goalSelector.addGoal(3, new MiniBreakBlockGoal(MiniTags.Blocks.BREAK_BLOCKS, this, 1, 3));
     pickup = new PickupPlayerGoal(this);
     if (!ConfigManager.getHostile()) {
       this.goalSelector.addGoal(4, pickup);
