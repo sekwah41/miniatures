@@ -39,7 +39,6 @@ public class Miniatures {
 
     DistExecutor.safeRunWhenOn(Dist.CLIENT, () -> ClientInit::init);
 
-    modBus.addListener(ConfigManager::configLoaded);
     MinecraftForge.EVENT_BUS.addListener(this::onServerAboutToStart);
 
     REGISTRATE = CustomRegistrate.create(MODID);

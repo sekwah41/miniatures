@@ -3,29 +3,23 @@ package noobanidus.mods.miniatures.config;
 import com.electronwill.nightconfig.core.file.CommentedFileConfig;
 import com.electronwill.nightconfig.core.io.WritingMode;
 import net.minecraftforge.common.ForgeConfigSpec;
-import net.minecraftforge.fml.config.ModConfig;
 
 import java.nio.file.Path;
 
 public class ConfigManager {
-  private static ForgeConfigSpec.Builder COMMON_BUILDER = new ForgeConfigSpec.Builder();
+  private static final ForgeConfigSpec.Builder COMMON_BUILDER = new ForgeConfigSpec.Builder();
 
-  public static ForgeConfigSpec COMMON_CONFIG;
+  public static final ForgeConfigSpec COMMON_CONFIG;
 
-  private static ForgeConfigSpec.DoubleValue MAX_HEALTH;
-  private static ForgeConfigSpec.DoubleValue MOVEMENT_SPEED;
-  private static ForgeConfigSpec.DoubleValue ATTACK_DAMAGE;
-  private static ForgeConfigSpec.DoubleValue ARMOR_VALUE;
-  private static ForgeConfigSpec.BooleanValue HOSTILE;
-  private static ForgeConfigSpec.BooleanValue IMMUNE;
-
-  private static double maxHealth = -999;
-  private static double movementSpeed = -999;
-  private static double attackDamage = -999;
-  private static double armorValue = -999;
-  private static int hostile = -999;
-  private static int immune = -999;
-
+  private static final ForgeConfigSpec.DoubleValue MAX_HEALTH;
+  private static final ForgeConfigSpec.DoubleValue MOVEMENT_SPEED;
+  private static final ForgeConfigSpec.DoubleValue ATTACK_DAMAGE;
+  private static final ForgeConfigSpec.DoubleValue ARMOR_VALUE;
+  private static final ForgeConfigSpec.BooleanValue HOSTILE;
+  private static final ForgeConfigSpec.BooleanValue IMMUNE;
+  private static final ForgeConfigSpec.BooleanValue DESTROYS_BLOCKS;
+  private static final ForgeConfigSpec.BooleanValue BREAKS_BLOCKS;
+  private static final ForgeConfigSpec.BooleanValue PICKUP_GOAL;
 
   static {
     COMMON_BUILDER.comment("options relating to miniatures").push("miniatures");
@@ -35,6 +29,9 @@ public class ConfigManager {
     ARMOR_VALUE = COMMON_BUILDER.comment("how much armor miniatures should have").defineInRange("armor_value", 0, 0, Double.MAX_VALUE);
     HOSTILE = COMMON_BUILDER.comment("whether or not miniatures are hostile to players").define("hostile", false);
     IMMUNE = COMMON_BUILDER.comment("whether or not miniatures are immune to damage that does not originate from a player").define("non_player_immune", true);
+    BREAKS_BLOCKS = COMMON_BUILDER.comment("whether or not the miniatures will break blocks in the default tag (miniatures:break_blocks)").define("breaks_blocks", true);
+    DESTROYS_BLOCKS = COMMON_BUILDER.comment("whether blocks in the default tag (miniatures:break_blocks) will be destroyed (true) or instead dropped when broken (false)").define("destroys_blocks", false);
+    PICKUP_GOAL = COMMON_BUILDER.comment("whether or not non-hostile miniatures will try to pick up players").define("pickup_goal", true);
     COMMON_BUILDER.pop();
     COMMON_CONFIG = COMMON_BUILDER.build();
   }
@@ -45,55 +42,39 @@ public class ConfigManager {
     spec.setConfig(configData);
   }
 
-  public static void configLoaded(ModConfig.ModConfigEvent event) {
-    hostile = -999;
-    movementSpeed = -999;
-    maxHealth = -999;
-    attackDamage = -999;
-    armorValue = -999;
-    immune = -999;
-  }
-
   public static double getArmorValue() {
-    if (armorValue == -999) {
-      armorValue = ARMOR_VALUE.get();
-    }
-    return armorValue;
+    return ARMOR_VALUE.get();
   }
 
   public static double getAttackDamage() {
-    if (attackDamage == -999) {
-      attackDamage = ATTACK_DAMAGE.get();
-    }
-    return attackDamage;
+    return ATTACK_DAMAGE.get();
   }
 
   public static double getMaxHealth() {
-    if (maxHealth == -999) {
-      maxHealth = MAX_HEALTH.get();
-    }
-    return maxHealth;
+    return MAX_HEALTH.get();
   }
 
   public static double getMovementSpeed() {
-    if (movementSpeed == -999) {
-      movementSpeed = MOVEMENT_SPEED.get();
-    }
-    return movementSpeed;
-
+    return MOVEMENT_SPEED.get();
   }
 
   public static boolean getHostile() {
-    if (hostile == -999) {
-      hostile = HOSTILE.get() ? 1 : 0;
-    }
-    return hostile == 1;
+    return HOSTILE.get();
   }
 
-  public static boolean getImmune () {
-    if (immune == -999) {
-      immune = IMMUNE.get() ? 1 : 0;
-    }
-    return immune == 1;
+  public static boolean getImmune() {
+    return IMMUNE.get();
+  }
+
+  public static boolean getDestroysBlocks () {
+    return DESTROYS_BLOCKS.get();
+  }
+
+  public static boolean getBreaksBlocks () {
+    return BREAKS_BLOCKS.get();
+  }
+
+  public static boolean getDoesPickup () {
+    return PICKUP_GOAL.get();
   }
 }
