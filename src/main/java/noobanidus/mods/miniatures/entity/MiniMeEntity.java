@@ -49,6 +49,7 @@ public class MiniMeEntity extends MonsterEntity {
   public static final DataParameter<Boolean> SLIM = EntityDataManager.createKey(MiniMeEntity.class, DataSerializers.BOOLEAN);
   public static final DataParameter<Boolean> AGGRO = EntityDataManager.createKey(MiniMeEntity.class, DataSerializers.BOOLEAN);
   public static final DataParameter<Byte> NOOB = EntityDataManager.createKey(MiniMeEntity.class, DataSerializers.BYTE);
+  public static final DataParameter<Float> SCALE = EntityDataManager.createKey(MiniMeEntity.class, DataSerializers.FLOAT);
 
   private static PlayerProfileCache profileCache;
   private static MinecraftSessionService sessionService;
@@ -58,6 +59,7 @@ public class MiniMeEntity extends MonsterEntity {
 
   private boolean healthBoosted = false;
   private boolean attackBoosted = false;
+  private int scaleChanged = -1;
 
   @Nullable
   public static GameProfile updateGameProfile(@Nullable GameProfile input) {
@@ -116,7 +118,9 @@ public class MiniMeEntity extends MonsterEntity {
     this.dataManager.register(GAMEPROFILE, Optional.empty());
     this.dataManager.register(SLIM, false);
     this.dataManager.register(AGGRO, false);
-    this.dataManager.register(NOOB, (byte)3); //(byte)rand.nextInt(5));
+    this.dataManager.register(NOOB, (byte) rand.nextInt(20));
+    this.dataManager.register(SCALE, 1f);
+
     // 0: Upside down
     // 1: Floating
     // 2: On Fire
@@ -125,15 +129,23 @@ public class MiniMeEntity extends MonsterEntity {
     // 5:
   }
 
-  public int getNoobVariant () {
+  public int getNoobVariant() {
     if (!NoobUtil.isNoob(this)) {
       return -1;
     }
-    return (int)(byte)dataManager.get(NOOB);
+    return (int) (byte) dataManager.get(NOOB);
   }
 
-  public void setNoobVariant (int variant) {
-    dataManager.set(NOOB, (byte)variant);
+  public void setNoobVariant(int variant) {
+    dataManager.set(NOOB, (byte) variant);
+  }
+
+  public float getScale() {
+    return dataManager.get(SCALE);
+  }
+
+  public void setScale(float scale) {
+    dataManager.set(SCALE, scale);
   }
 
   public void setSlim(boolean slim) {
@@ -238,9 +250,17 @@ public class MiniMeEntity extends MonsterEntity {
     } else if (isBeingRidden()) {
       wasRidden = true;
     }
-    int noob = getNoobVariant();
-    if (ticksExisted % 4 == 0 && noob == 1 && world.isRemote) {
-      world.addParticle(ParticleTypes.CAMPFIRE_COSY_SMOKE, getPosX(), getPosY() + 0.3, getPosZ(), 0, 0, 0);
+    if (world.isRemote) {
+      int noob = getNoobVariant();
+      if (ticksExisted % 4 == 0 && noob == 1) {
+        world.addParticle(ParticleTypes.CAMPFIRE_COSY_SMOKE, getPosX(), getPosY() + 0.3, getPosZ(), 0, 0, 0);
+      }
+    }
+    if (scaleChanged == -1) {
+      scaleChanged = ticksExisted + 20;
+    } else if (this.ticksExisted > scaleChanged && scaleChanged != 0) {
+      this.recalculateSize();
+      scaleChanged = 0;
     }
   }
 
@@ -285,7 +305,8 @@ public class MiniMeEntity extends MonsterEntity {
       compound.put("gameProfile", NBTUtil.writeGameProfile(new CompoundNBT(), dataManager.get(GAMEPROFILE).get()));
     }
     compound.putBoolean("Slim", isSlim());
-    compound.putByte("Noob", (byte)getNoobVariant());
+    compound.putByte("Noob", (byte) getNoobVariant());
+    compound.putFloat("Scale", getScale());
 
     compound.putInt("pickupCooldown", pickupCooldown);
     if (healthBoosted) {
@@ -318,6 +339,9 @@ public class MiniMeEntity extends MonsterEntity {
     this.setSlim(tag.getBoolean("Slim"));
     if (tag.contains("Noob")) {
       this.setNoobVariant(tag.getByte("Noob"));
+    }
+    if (tag.contains("Scale")) {
+      this.setScale(tag.getFloat("Scale"));
     }
   }
 
@@ -386,6 +410,11 @@ public class MiniMeEntity extends MonsterEntity {
 
   @Override
   protected float getStandingEyeHeight(Pose p_213348_1_, EntitySize p_213348_2_) {
-    return 0.93f;
+    return p_213348_2_.height * 0.93f;
+  }
+
+  @Override
+  public float getRenderScale() {
+    return 1.0f;
   }
 }

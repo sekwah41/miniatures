@@ -19,7 +19,7 @@ import static noobanidus.mods.miniatures.Miniatures.REGISTRATE;
 public class ModEntities {
   public static RegistryEntry<EntityType<MiniMeEntity>> MINIME = REGISTRATE.<MiniMeEntity>entity("minime", MiniMeEntity::new, EntityClassification.CREATURE)
       .loot((p, e) -> p.registerLootTable(e, LootTable.builder()))
-      .properties(o -> o.size(0.6F, 2.2F).trackingRange(8).setShouldReceiveVelocityUpdates(true).setUpdateInterval(4))
+      .properties(o -> o.size(0.3f, 1.1F).trackingRange(8).setShouldReceiveVelocityUpdates(true).setUpdateInterval(4))
       .register();
 
   public static RegistryEntry<EntityType<MeEntity>> ME = REGISTRATE.<MeEntity>entity("me", MeEntity::new, EntityClassification.CREATURE)
