@@ -99,6 +99,19 @@ public class MiniMeEntity extends MonsterEntity {
     enablePersistence();
   }
 
+  public boolean getHostile () {
+    if (getAggro()) {
+      return true;
+    }
+    return ConfigManager.getHostile();
+  }
+
+  // TODO: Properly handle the relative offset for huge entities? And tiny.
+  @Override
+  public double getMountedYOffset() {
+    return super.getMountedYOffset();
+  }
+
   @Override
   public boolean func_230292_f_(PlayerEntity p_230292_1_) {
     return false;

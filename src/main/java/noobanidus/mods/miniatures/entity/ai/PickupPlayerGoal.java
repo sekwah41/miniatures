@@ -3,8 +3,10 @@ package noobanidus.mods.miniatures.entity.ai;
 import com.mojang.authlib.GameProfile;
 import net.minecraft.entity.ai.goal.Goal;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.pathfinding.Path;
 import net.minecraft.pathfinding.PathNavigator;
 import net.minecraft.world.World;
+import noobanidus.mods.miniatures.config.ConfigManager;
 import noobanidus.mods.miniatures.entity.MiniMeEntity;
 
 import java.util.EnumSet;
@@ -13,26 +15,35 @@ import java.util.List;
 public class PickupPlayerGoal extends Goal {
 
   private MiniMeEntity minime;
-  private PathNavigator pathFinder;
+  private Path path;
   private PlayerEntity targetPlayer;
 
   public PickupPlayerGoal(MiniMeEntity entity) {
     this.minime = entity;
-    this.pathFinder = entity.getNavigator();
     this.setMutexFlags(EnumSet.of(Goal.Flag.MOVE, Goal.Flag.LOOK));
   }
 
   @Override
   public boolean shouldExecute() {
-    if (minime.getPickupCooldown() > 0) return false;
-    if (!pathFinder.noPath()) return false;
-
-    if (!minime.world.isRemote && targetPlayer == null || targetPlayer.isAlive()) {
+    if (!ConfigManager.getDoesPickup() || this.minime.getHostile()) {
+      return false;
+    }
+    if (minime.getPickupCooldown() > 0) {
+      return false;
+    }
+    if (path != null) {
+      return false;
+    }
+    if (targetPlayer == null || targetPlayer.isAlive()) {
       List<PlayerEntity> players = minime.world.getEntitiesWithinAABB(PlayerEntity.class, minime.getBoundingBox().grow(10));
       for (PlayerEntity player : players) {
-        if (canRidePlayer(player)) {
+        if (player.isPassenger()) {
+          continue;
+        }
+        if (!ConfigManager.getOwnerRider() || canRidePlayer(player)) {
           targetPlayer = player;
-          return true;
+          path = minime.getNavigator().getPathToEntity(targetPlayer, 0);
+          return path != null;
         }
       }
     }
@@ -41,37 +52,36 @@ public class PickupPlayerGoal extends Goal {
 
   @Override
   public void resetTask() {
-    pathFinder.clearPath();
+    path = null;
     targetPlayer = null;
+    minime.getNavigator().clearPath();
   }
 
   @Override
   public boolean shouldContinueExecuting() {
-    return minime.isAlive() &&
-        !pathFinder.noPath() &&
-        canRidePlayer(targetPlayer);
+    return targetPlayer != null && !targetPlayer.isPassenger() && ConfigManager.getDoesPickup() && !minime.getHostile() && minime.isAlive() && path != null && (!ConfigManager.getOwnerRider() || canRidePlayer(targetPlayer));
   }
 
   @Override
   public void startExecuting() {
-    if (targetPlayer != null) {
-      pathFinder.tryMoveToXYZ(targetPlayer.getPosX(), targetPlayer.getPosY(), targetPlayer.getPosZ(), 1f);
-    }
+    minime.getNavigator().setPath(this.path, 1);
   }
 
   @Override
   public void tick() {
     super.tick();
-    World world = minime.world;
-    if (!world.isRemote && canRidePlayer(targetPlayer)) {
-      if (minime.getDistance(targetPlayer) < 1.0) {
+    if (!minime.world.isRemote && (!ConfigManager.getOwnerRider() || canRidePlayer(targetPlayer))) {
+      if (minime.getDistance(targetPlayer) < 1.5) {
         targetPlayer.startRiding(minime);
       }
     }
   }
 
   private boolean canRidePlayer(PlayerEntity player) {
+    if (!ConfigManager.getOwnerRider()) {
+      return true;
+    }
     final GameProfile owner = minime.getGameProfile().orElse(null);
-    return owner != null && player != null && player.getGameProfile().getId().equals(owner.getId()) && player.isPassenger();
+    return owner != null && player != null && player.getGameProfile().getId().equals(owner.getId());
   }
 }

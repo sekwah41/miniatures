@@ -23,4 +23,6 @@ public class EntityEvents {
       }
     }
   }
+
+  // TODO: Only reset the pick-up delay when entity dismounts
 }

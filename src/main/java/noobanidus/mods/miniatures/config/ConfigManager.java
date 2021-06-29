@@ -20,6 +20,7 @@ public class ConfigManager {
   private static final ForgeConfigSpec.BooleanValue DESTROYS_BLOCKS;
   private static final ForgeConfigSpec.BooleanValue BREAKS_BLOCKS;
   private static final ForgeConfigSpec.BooleanValue PICKUP_GOAL;
+  private static final ForgeConfigSpec.BooleanValue OWNER_RIDER;
 
   static {
     COMMON_BUILDER.comment("options relating to miniatures").push("miniatures");
@@ -32,6 +33,7 @@ public class ConfigManager {
     BREAKS_BLOCKS = COMMON_BUILDER.comment("whether or not the miniatures will break blocks in the default tag (miniatures:break_blocks)").define("breaks_blocks", true);
     DESTROYS_BLOCKS = COMMON_BUILDER.comment("whether blocks in the default tag (miniatures:break_blocks) will be destroyed (true) or instead dropped when broken (false)").define("destroys_blocks", false);
     PICKUP_GOAL = COMMON_BUILDER.comment("whether or not non-hostile miniatures will try to pick up players").define("pickup_goal", true);
+    OWNER_RIDER = COMMON_BUILDER.comment("whether or not only the owner entity of the miniature will attempt to pick up a player, or whether it will pick up any player").define("owner_rider", false);
     COMMON_BUILDER.pop();
     COMMON_CONFIG = COMMON_BUILDER.build();
   }
@@ -76,5 +78,9 @@ public class ConfigManager {
 
   public static boolean getDoesPickup () {
     return PICKUP_GOAL.get();
+  }
+
+  public static boolean getOwnerRider () {
+    return OWNER_RIDER.get();
   }
 }
