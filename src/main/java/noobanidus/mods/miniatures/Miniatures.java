@@ -21,9 +21,12 @@ import noobanidus.mods.miniatures.init.ModSerializers;
 import noobanidus.mods.miniatures.init.ModTags;
 import noobanidus.mods.miniatures.setup.ClientInit;
 import noobanidus.mods.miniatures.setup.CommonSetup;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 @Mod("miniatures")
 public class Miniatures {
+  public static final Logger LOG = LogManager.getLogger();
   public static final String MODID = "miniatures";
 
   public static CustomRegistrate REGISTRATE;
