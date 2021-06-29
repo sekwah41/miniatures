@@ -165,12 +165,8 @@ public class MiniMeEntity extends MonsterEntity {
     if (!aggro) {
       added = false;
       this.goalSelector.removeGoal(melee);
-      this.targetSelector.removeGoal(attack);
-      this.goalSelector.addGoal(4, pickup);
     } else if (!added) {
       this.goalSelector.addGoal(1, melee);
-      this.targetSelector.addGoal(1, attack);
-      this.goalSelector.addGoal(4, pickup);
     }
   }
 
@@ -179,26 +175,20 @@ public class MiniMeEntity extends MonsterEntity {
   }
 
   private MeleeAttackGoal melee;
-  private NearestAttackableTargetGoal<?> attack;
-  private PickupPlayerGoal pickup;
 
   private boolean added = false;
 
   @Override
   protected void registerGoals() {
     melee = new MeleeAttackGoal(this, 1.0d, true);
-    attack = new NearestAttackableTargetGoal<>(this, PlayerEntity.class, true, true);
     if (ConfigManager.getHostile()) {
       added = true;
       this.goalSelector.addGoal(1, melee);
-      this.targetSelector.addGoal(1, attack);
     }
+    this.targetSelector.addGoal(1, new NearestAttackableTargetGoal<>(this, PlayerEntity.class, true, true));
     this.goalSelector.addGoal(2, new SwimGoal(this));
     this.goalSelector.addGoal(3, new MiniBreakBlockGoal(MiniTags.Blocks.BREAK_BLOCKS, this, 1, 3));
-    pickup = new PickupPlayerGoal(this);
-    if (!ConfigManager.getHostile()) {
-      this.goalSelector.addGoal(4, pickup);
-    }
+    this.goalSelector.addGoal(4, new PickupPlayerGoal(this));
     this.goalSelector.addGoal(5, new LookRandomlyGoal(this));
     this.goalSelector.addGoal(6, new WaterAvoidingRandomWalkingGoal(this, 1.0D));
     this.goalSelector.addGoal(7, new LookAtGoal(this, PlayerEntity.class, 8.0F));

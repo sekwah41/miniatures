@@ -18,6 +18,7 @@ import net.minecraft.world.chunk.ChunkStatus;
 import net.minecraft.world.chunk.IChunk;
 import net.minecraft.world.server.ServerWorld;
 import net.minecraftforge.common.Tags;
+import noobanidus.mods.miniatures.config.ConfigManager;
 
 import javax.annotation.Nullable;
 import java.util.Random;
@@ -38,6 +39,9 @@ public class MiniBreakBlockGoal extends MoveToBlockGoal {
     * method as well.
     */
    public boolean shouldExecute() {
+      if (!ConfigManager.getBreaksBlocks()) {
+         return false;
+      }
       if (!net.minecraftforge.common.ForgeHooks.canEntityDestroy(this.entity.world, this.destinationBlock, this.entity)) {
          return false;
       } else if (this.runDelay > 0) {
@@ -50,6 +54,11 @@ public class MiniBreakBlockGoal extends MoveToBlockGoal {
          this.runDelay = this.getRunDelay(this.creature);
          return false;
       }
+   }
+
+   @Override
+   public boolean shouldContinueExecuting() {
+      return !ConfigManager.getBreaksBlocks() && super.shouldContinueExecuting();
    }
 
    private boolean func_220729_m() {
@@ -76,6 +85,11 @@ public class MiniBreakBlockGoal extends MoveToBlockGoal {
    }
 
    public void playBrokenSound(World worldIn, BlockPos pos) {
+   }
+
+   @Override
+   public double getTargetDistanceSq() {
+      return 2.5;
    }
 
    /**
@@ -106,7 +120,7 @@ public class MiniBreakBlockGoal extends MoveToBlockGoal {
          }
 
          if (this.breakingTime > 60) {
-            world.removeBlock(blockpos1, false);
+            world.destroyBlock(blockpos1, !ConfigManager.getDestroysBlocks(), this.creature);
             if (!world.isRemote) {
                for(int i = 0; i < 20; ++i) {
                   double d3 = random.nextGaussian() * 0.02D;
