@@ -237,7 +237,6 @@ public class MiniMeEntity extends MonsterEntity {
     if (pickupCooldown > 0) pickupCooldown--;
     if (wasRidden && !isBeingRidden()) {
       wasRidden = false;
-      setPickupCooldown(1200);
     } else if (isBeingRidden()) {
       wasRidden = true;
     }
