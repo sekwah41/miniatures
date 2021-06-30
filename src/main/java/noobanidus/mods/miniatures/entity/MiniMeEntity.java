@@ -34,6 +34,7 @@ import net.minecraftforge.common.util.Constants;
 import noobanidus.mods.miniatures.MiniTags;
 import noobanidus.mods.miniatures.config.ConfigManager;
 import noobanidus.mods.miniatures.entity.ai.MiniBreakBlockGoal;
+import noobanidus.mods.miniatures.entity.ai.MiniMeleeAttackGoal;
 import noobanidus.mods.miniatures.entity.ai.PickupPlayerGoal;
 import noobanidus.mods.miniatures.init.ModModifiers;
 import noobanidus.mods.miniatures.init.ModSerializers;
@@ -47,7 +48,7 @@ import java.util.Optional;
 public class MiniMeEntity extends MonsterEntity {
   private static final DataParameter<Optional<GameProfile>> GAMEPROFILE = EntityDataManager.createKey(MiniMeEntity.class, ModSerializers.OPTIONAL_GAME_PROFILE);
   public static final DataParameter<Boolean> SLIM = EntityDataManager.createKey(MiniMeEntity.class, DataSerializers.BOOLEAN);
-  public static final DataParameter<Boolean> AGGRO = EntityDataManager.createKey(MiniMeEntity.class, DataSerializers.BOOLEAN);
+  public static final DataParameter<Integer> AGGRO = EntityDataManager.createKey(MiniMeEntity.class, DataSerializers.VARINT);
   public static final DataParameter<Byte> NOOB = EntityDataManager.createKey(MiniMeEntity.class, DataSerializers.BYTE);
   public static final DataParameter<Float> SCALE = EntityDataManager.createKey(MiniMeEntity.class, DataSerializers.FLOAT);
 
@@ -99,11 +100,12 @@ public class MiniMeEntity extends MonsterEntity {
     enablePersistence();
   }
 
-  public boolean getHostile () {
-    if (getAggro()) {
-      return true;
+  public boolean getHostile() {
+    int aggro = getAggro();
+    if (aggro == -1) {
+      return ConfigManager.getHostile();
     }
-    return ConfigManager.getHostile();
+    return aggro == 1;
   }
 
   // TODO: Properly handle the relative offset for huge entities? And tiny.
@@ -130,7 +132,7 @@ public class MiniMeEntity extends MonsterEntity {
     super.registerData();
     this.dataManager.register(GAMEPROFILE, Optional.empty());
     this.dataManager.register(SLIM, false);
-    this.dataManager.register(AGGRO, false);
+    this.dataManager.register(AGGRO, -1);
     this.dataManager.register(NOOB, (byte) rand.nextInt(20));
     this.dataManager.register(SCALE, 1f);
 
@@ -169,36 +171,22 @@ public class MiniMeEntity extends MonsterEntity {
     return dataManager.get(SLIM);
   }
 
-  public boolean getAggro() {
+  public int getAggro() {
     return dataManager.get(AGGRO);
   }
 
-  public void setAggro(boolean aggro) {
+  public void setAggro(int aggro) {
     dataManager.set(AGGRO, aggro);
-    if (!aggro) {
-      added = false;
-      this.goalSelector.removeGoal(melee);
-    } else if (!added) {
-      this.goalSelector.addGoal(1, melee);
-    }
   }
 
   public static AttributeModifierMap.MutableAttribute attributes() {
     return MobEntity.func_233666_p_().createMutableAttribute(Attributes.MAX_HEALTH, ConfigManager.getMaxHealth()).createMutableAttribute(Attributes.MOVEMENT_SPEED, ConfigManager.getMovementSpeed()).createMutableAttribute(Attributes.ATTACK_DAMAGE, ConfigManager.getAttackDamage()).createMutableAttribute(Attributes.ARMOR, ConfigManager.getArmorValue());
   }
 
-  private MeleeAttackGoal melee;
-
-  private boolean added = false;
-
   @Override
   protected void registerGoals() {
-    melee = new MeleeAttackGoal(this, 1.0d, true);
-    if (ConfigManager.getHostile()) {
-      added = true;
-      this.goalSelector.addGoal(1, melee);
-    }
     this.targetSelector.addGoal(1, new NearestAttackableTargetGoal<>(this, PlayerEntity.class, true, true));
+    this.goalSelector.addGoal(1, new MiniMeleeAttackGoal(this, 1.0d, true));
     this.goalSelector.addGoal(2, new SwimGoal(this));
     this.goalSelector.addGoal(3, new MiniBreakBlockGoal(MiniTags.Blocks.BREAK_BLOCKS, this, 1, 3));
     this.goalSelector.addGoal(4, new PickupPlayerGoal(this));
@@ -332,7 +320,7 @@ public class MiniMeEntity extends MonsterEntity {
       }
     }
 
-    compound.putBoolean("aggro", getAggro());
+    compound.putInt("Hostile", getAggro());
   }
 
   @Override
@@ -345,6 +333,9 @@ public class MiniMeEntity extends MonsterEntity {
     }
     if (tag.contains("Scale")) {
       this.setScale(tag.getFloat("Scale"));
+    }
+    if (tag.contains("Hostile")) {
+      this.setAggro(tag.getInt("Hostile"));
     }
   }
 
@@ -404,9 +395,6 @@ public class MiniMeEntity extends MonsterEntity {
           }
           healthBoosted = true;
         }
-      }
-      if (compound.contains("aggro")) {
-        setAggro(compound.getBoolean("aggro"));
       }
     }
   }

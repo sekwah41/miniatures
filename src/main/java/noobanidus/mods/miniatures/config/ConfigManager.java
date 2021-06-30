@@ -3,9 +3,14 @@ package noobanidus.mods.miniatures.config;
 import com.electronwill.nightconfig.core.file.CommentedFileConfig;
 import com.electronwill.nightconfig.core.io.WritingMode;
 import net.minecraftforge.common.ForgeConfigSpec;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.config.ModConfig;
+import noobanidus.mods.miniatures.Miniatures;
 
 import java.nio.file.Path;
 
+@Mod.EventBusSubscriber(bus= Mod.EventBusSubscriber.Bus.MOD, modid= Miniatures.MODID)
 public class ConfigManager {
   private static final ForgeConfigSpec.Builder COMMON_BUILDER = new ForgeConfigSpec.Builder();
 
@@ -42,6 +47,12 @@ public class ConfigManager {
     CommentedFileConfig configData = CommentedFileConfig.builder(path).sync().autosave().writingMode(WritingMode.REPLACE).build();
     configData.load();
     spec.setConfig(configData);
+  }
+
+  @SubscribeEvent
+  public static void onConfigEvent (ModConfig.ModConfigEvent event) {
+    Miniatures.LOG.info("Config reload for [Miniatures]!");
+    COMMON_CONFIG.setConfig(event.getConfig().getConfigData());
   }
 
   public static double getArmorValue() {
