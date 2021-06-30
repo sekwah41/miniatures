@@ -40,12 +40,6 @@ public class EntityEvents {
       if (isMiniature(event.getEntityBeingMounted())) {
         MiniMeEntity mini = (MiniMeEntity) mounted;
         mini.setPickupCooldown(mini.world.rand.nextInt(800) + 600);
-      } else {
-        Entity mountee = event.getEntityMounting();
-        if (mountee instanceof PlayerEntity) {
-          PlayerEntity player = (PlayerEntity) mountee;
-          player.addPotionEffect(new EffectInstance(Effects.SLOW_FALLING, 40, 0, false, true));
-        }
       }
     }
   }

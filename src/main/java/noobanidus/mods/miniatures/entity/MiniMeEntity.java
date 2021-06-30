@@ -4,10 +4,7 @@ import com.google.common.collect.Iterables;
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.minecraft.MinecraftSessionService;
 import com.mojang.authlib.properties.Property;
-import net.minecraft.entity.EntitySize;
-import net.minecraft.entity.EntityType;
-import net.minecraft.entity.MobEntity;
-import net.minecraft.entity.Pose;
+import net.minecraft.entity.*;
 import net.minecraft.entity.ai.attributes.AttributeModifier;
 import net.minecraft.entity.ai.attributes.AttributeModifierMap;
 import net.minecraft.entity.ai.attributes.Attributes;
@@ -27,6 +24,7 @@ import net.minecraft.pathfinding.PathNodeType;
 import net.minecraft.server.management.PlayerProfileCache;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.StringUtils;
+import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.world.World;
@@ -257,6 +255,11 @@ public class MiniMeEntity extends MonsterEntity {
   @Override
   public double getYOffset() {
     return 0;
+  }
+
+  @Override
+  public Vector3d func_230268_c_(LivingEntity livingEntity) {
+    return new Vector3d(this.getPosX(), this.getBoundingBox().minY, this.getPosZ());
   }
 
   public int getPickupCooldown() {
