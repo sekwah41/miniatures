@@ -254,7 +254,7 @@ public class MiniMeEntity extends MonsterEntity {
 
   @Override
   public double getYOffset() {
-    return 0;
+    return super.getYOffset();
   }
 
   @Override
