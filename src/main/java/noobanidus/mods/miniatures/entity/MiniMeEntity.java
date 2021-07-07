@@ -183,8 +183,8 @@ public class MiniMeEntity extends MonsterEntity {
 
   @Override
   protected void registerGoals() {
-    this.targetSelector.addGoal(1, new NearestAttackableTargetGoal<>(this, PlayerEntity.class, true, true));
-    this.goalSelector.addGoal(1, new MiniMeleeAttackGoal(this, 1.0d, true));
+    this.targetSelector.addGoal(1, new NearestAttackableTargetGoal<>(this, PlayerEntity.class, true));
+    this.goalSelector.addGoal(1, new MiniMeleeAttackGoal(this, 1.0d, false));
     this.goalSelector.addGoal(2, new SwimGoal(this));
     this.goalSelector.addGoal(3, new MiniBreakBlockGoal(MiniTags.Blocks.BREAK_BLOCKS, this, 1, 3));
     this.goalSelector.addGoal(4, new PickupPlayerGoal(this));
