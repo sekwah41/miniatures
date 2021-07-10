@@ -12,6 +12,7 @@ import net.minecraft.entity.ai.attributes.ModifiableAttributeInstance;
 import net.minecraft.entity.ai.goal.*;
 import net.minecraft.entity.monster.MonsterEntity;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.nbt.NBTUtil;
 import net.minecraft.network.datasync.DataParameter;
@@ -27,7 +28,10 @@ import net.minecraft.util.StringUtils;
 import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.StringTextComponent;
+import net.minecraft.util.text.TextComponentUtils;
+import net.minecraft.world.BossInfo;
 import net.minecraft.world.World;
+import net.minecraft.world.server.ServerBossInfo;
 import net.minecraftforge.common.util.Constants;
 import noobanidus.mods.miniatures.MiniTags;
 import noobanidus.mods.miniatures.config.ConfigManager;
@@ -49,6 +53,8 @@ public class MiniMeEntity extends MonsterEntity {
   public static final DataParameter<Integer> AGGRO = EntityDataManager.createKey(MiniMeEntity.class, DataSerializers.VARINT);
   public static final DataParameter<Byte> NOOB = EntityDataManager.createKey(MiniMeEntity.class, DataSerializers.BYTE);
   public static final DataParameter<Float> SCALE = EntityDataManager.createKey(MiniMeEntity.class, DataSerializers.FLOAT);
+
+  private ServerBossInfo bossInfo;
 
   private static PlayerProfileCache profileCache;
   private static MinecraftSessionService sessionService;
@@ -250,6 +256,9 @@ public class MiniMeEntity extends MonsterEntity {
       this.recalculateSize();
       scaleChanged = 0;
     }
+    if (bossInfo != null) {
+      this.bossInfo.setPercent(this.getHealth() / this.getMaxHealth());
+    }
   }
 
   @Override
@@ -276,6 +285,9 @@ public class MiniMeEntity extends MonsterEntity {
 
     if (name != null) {
       this.setGameProfile(new GameProfile(null, name.getUnformattedComponentText().toLowerCase(Locale.ROOT)));
+      if (bossInfo != null) {
+        this.bossInfo.setName(name);
+      }
     }
   }
 
@@ -323,6 +335,12 @@ public class MiniMeEntity extends MonsterEntity {
     }
 
     compound.putInt("Hostile", getAggro());
+
+    if (bossInfo != null) {
+      compound.putBoolean("BossBar", true);
+      compound.putString("BossBarColor", bossInfo.getColor().getName());
+      compound.putString("BossBarOverlay", bossInfo.getOverlay().getName());
+    }
   }
 
   @Override
@@ -398,6 +416,33 @@ public class MiniMeEntity extends MonsterEntity {
           healthBoosted = true;
         }
       }
+    }
+    if (compound.contains("BossBar", Constants.NBT.TAG_BYTE) && compound.getBoolean("BossBar")) {
+      BossInfo.Color bossInfoColor = BossInfo.Color.WHITE;
+      BossInfo.Overlay bossInfoOverlay = BossInfo.Overlay.PROGRESS;
+      if (compound.contains("BossBarColor", Constants.NBT.TAG_STRING)) {
+        bossInfoColor = BossInfo.Color.byName(compound.getString("BossBarColor").toLowerCase());
+      }
+      if (compound.contains("BossBarOverlay", Constants.NBT.TAG_STRING)) {
+        bossInfoOverlay = BossInfo.Overlay.byName(compound.getString("BossBarOverlay").toLowerCase());
+      }
+      bossInfo = new ServerBossInfo(TextComponentUtils.getDisplayName(getGameProfile().get()), bossInfoColor, bossInfoOverlay);
+    }
+  }
+
+  @Override
+  public void addTrackingPlayer(ServerPlayerEntity player) {
+    super.addTrackingPlayer(player);
+    if (bossInfo != null) {
+      this.bossInfo.addPlayer(player);
+    }
+  }
+
+  @Override
+  public void removeTrackingPlayer(ServerPlayerEntity player) {
+    super.removeTrackingPlayer(player);
+    if (bossInfo != null) {
+      this.bossInfo.removePlayer(player);
     }
   }
 
