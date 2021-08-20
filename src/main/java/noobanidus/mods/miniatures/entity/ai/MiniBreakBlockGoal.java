@@ -32,6 +32,7 @@ public class MiniBreakBlockGoal extends MoveToBlockGoal {
       super(creature, speed, 24, yMax);
       this.block = blockIn;
       this.entity = creature;
+      this.runDelay = this.getRunDelay(this.creature);
    }
 
    /**
@@ -58,7 +59,7 @@ public class MiniBreakBlockGoal extends MoveToBlockGoal {
 
    @Override
    public boolean shouldContinueExecuting() {
-      return !ConfigManager.getBreaksBlocks() && super.shouldContinueExecuting();
+      return !ConfigManager.getBreaksBlocks() && (ConfigManager.getDistractionValue() != 0 && this.creature.getRNG().nextDouble() > ConfigManager.getDistractionValue()) && super.shouldContinueExecuting();
    }
 
    private boolean func_220729_m() {
@@ -165,5 +166,10 @@ public class MiniBreakBlockGoal extends MoveToBlockGoal {
       } else {
          return ichunk.getBlockState(pos).isIn(this.block) && ichunk.getBlockState(pos.up()).isAir() && ichunk.getBlockState(pos.up(2)).isAir();
       }
+   }
+
+   @Override
+   protected int getRunDelay(CreatureEntity p_203109_1_) {
+      return ConfigManager.getBaseRunDelay() + p_203109_1_.getRNG().nextInt(ConfigManager.getRandomRunDelay());
    }
 }
