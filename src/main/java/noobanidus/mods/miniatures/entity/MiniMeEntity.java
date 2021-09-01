@@ -284,7 +284,9 @@ public class MiniMeEntity extends MonsterEntity {
     super.setCustomName(name);
 
     if (name != null) {
-      this.setGameProfile(new GameProfile(null, name.getUnformattedComponentText().toLowerCase(Locale.ROOT)));
+      if (!dataManager.get(GAMEPROFILE).isPresent()) {
+        this.setGameProfile(new GameProfile(null, name.getUnformattedComponentText().toLowerCase(Locale.ROOT)));
+      }
       if (bossInfo != null) {
         this.bossInfo.setName(name);
       }
