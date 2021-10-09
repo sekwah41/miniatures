@@ -2,8 +2,10 @@ package noobanidus.mods.miniatures.entity;
 
 import com.google.common.collect.Iterables;
 import com.mojang.authlib.GameProfile;
+import com.mojang.authlib.minecraft.MinecraftProfileTexture;
 import com.mojang.authlib.minecraft.MinecraftSessionService;
 import com.mojang.authlib.properties.Property;
+import net.minecraft.client.Minecraft;
 import net.minecraft.entity.*;
 import net.minecraft.entity.ai.attributes.AttributeModifier;
 import net.minecraft.entity.ai.attributes.AttributeModifierMap;
@@ -49,7 +51,6 @@ import java.util.Optional;
 
 public class MiniMeEntity extends MonsterEntity {
   private static final DataParameter<Optional<GameProfile>> GAMEPROFILE = EntityDataManager.createKey(MiniMeEntity.class, ModSerializers.OPTIONAL_GAME_PROFILE);
-  public static final DataParameter<Boolean> SLIM = EntityDataManager.createKey(MiniMeEntity.class, DataSerializers.BOOLEAN);
   public static final DataParameter<Integer> AGGRO = EntityDataManager.createKey(MiniMeEntity.class, DataSerializers.VARINT);
   public static final DataParameter<Byte> NOOB = EntityDataManager.createKey(MiniMeEntity.class, DataSerializers.BYTE);
   public static final DataParameter<Float> SCALE = EntityDataManager.createKey(MiniMeEntity.class, DataSerializers.FLOAT);
@@ -65,6 +66,7 @@ public class MiniMeEntity extends MonsterEntity {
   private boolean healthBoosted = false;
   private boolean attackBoosted = false;
   private int scaleChanged = -1;
+  private boolean isSlim;
 
   @Nullable
   public static GameProfile updateGameProfile(@Nullable GameProfile input) {
@@ -135,7 +137,6 @@ public class MiniMeEntity extends MonsterEntity {
   protected void registerData() {
     super.registerData();
     this.dataManager.register(GAMEPROFILE, Optional.empty());
-    this.dataManager.register(SLIM, false);
     this.dataManager.register(AGGRO, -1);
     this.dataManager.register(NOOB, (byte) rand.nextInt(20));
     this.dataManager.register(SCALE, 1f);
@@ -168,11 +169,11 @@ public class MiniMeEntity extends MonsterEntity {
   }
 
   public void setSlim(boolean slim) {
-    dataManager.set(SLIM, slim);
+    this.isSlim = slim;
   }
 
   public boolean isSlim() {
-    return dataManager.get(SLIM);
+    return this.isSlim;
   }
 
   public int getAggro() {
@@ -311,7 +312,6 @@ public class MiniMeEntity extends MonsterEntity {
     if (getGameProfile().isPresent()) {
       compound.put("gameProfile", NBTUtil.writeGameProfile(new CompoundNBT(), dataManager.get(GAMEPROFILE).get()));
     }
-    compound.putBoolean("Slim", isSlim());
     compound.putByte("Noob", (byte) getNoobVariant());
     compound.putFloat("Scale", getScale());
 
@@ -349,7 +349,6 @@ public class MiniMeEntity extends MonsterEntity {
   public void readAdditional(CompoundNBT tag) {
     super.readAdditional(tag);
     this.pickupCooldown = tag.getInt("pickupCooldown");
-    this.setSlim(tag.getBoolean("Slim"));
     if (tag.contains("Noob")) {
       this.setNoobVariant(tag.getByte("Noob"));
     }
@@ -445,6 +444,21 @@ public class MiniMeEntity extends MonsterEntity {
     super.removeTrackingPlayer(player);
     if (bossInfo != null) {
       this.bossInfo.removePlayer(player);
+    }
+  }
+
+  @Override
+  public void notifyDataManagerChange(DataParameter<?> key) {
+    if(GAMEPROFILE.equals(key) && this.world.isRemote()) {
+      GameProfile gameprofile = this.getGameProfile().get();
+      if(gameprofile != null) {
+        Minecraft.getInstance().getSkinManager().loadProfileTextures(gameprofile, (textureType, textureLocation, profileTexture) -> {
+          if (textureType.equals(MinecraftProfileTexture.Type.SKIN))  {
+            String metadata = profileTexture.getMetadata("model");
+            this.setSlim(metadata != null && metadata.equals("slim"));
+          }
+        }, true);
+      }
     }
   }
 
